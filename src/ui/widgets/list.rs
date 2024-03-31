@@ -18,8 +18,8 @@ mod imp {
     use gtk::subclass::prelude::*;
     use gtk::{gio, glib, CompositeTemplate};
 
-    use crate::ui::widgets::item::ItemPage;
-    use crate::ui::widgets::movie::MoviePage;
+    // use crate::ui::widgets::item::ItemPage;
+    // use crate::ui::widgets::movie::MoviePage;
 
     pub enum Page {
         Movie(Box<gtk::Widget>),
@@ -271,10 +271,8 @@ impl ListPage {
                 obj.set(item_page);
             } else {
 
-            }      
-            
-            
-        })); 
+            }
+        }));
         self.update();
     }
 
@@ -309,4 +307,3 @@ impl ListPage {
         }));
     }
 }
-

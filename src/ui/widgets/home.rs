@@ -205,20 +205,22 @@ impl HomePage {
         imp.liblist.set_factory(Some(&factory));
         imp.liblist.set_model(Some(selection));
         let liblist = imp.liblist.get();
-        liblist.connect_activate(glib::clone!(@weak self as obj => move |listview, position| {
-            let model = listview.model().unwrap();
-            let item = model.item(position).and_downcast::<glib::BoxedAnyObject>().unwrap();
-            let view: std::cell::Ref<crate::ui::network::View> = item.borrow();
-            let item_page = Page::Item(Box::new(ListPage::new(view.Id.clone()).into()));
-            obj.set(item_page);
-            let window = obj.root();
-            if let Some(window) = window {
-                if window.is::<Window>() {
-                    let window = window.downcast::<Window>().unwrap();
-                    window.set_title(&format!("{} - Date Created Descending",view.Name));
+        liblist.connect_activate(
+            glib::clone!(@weak self as obj => move |listview, position| {
+                let model = listview.model().unwrap();
+                let item = model.item(position).and_downcast::<glib::BoxedAnyObject>().unwrap();
+                let view: std::cell::Ref<crate::ui::network::View> = item.borrow();
+                let item_page = Page::Item(Box::new(ListPage::new(view.Id.clone()).into()));
+                obj.set(item_page);
+                let window = obj.root();
+                if let Some(window) = window {
+                    if window.is::<Window>() {
+                        let window = window.downcast::<Window>().unwrap();
+                        window.set_title(&format!("{} - Date Created Descending",view.Name));
+                    }
                 }
-            }
-        }));
+            }),
+        );
         libscrolled.set_child(Some(&liblist));
     }
 
@@ -334,13 +336,16 @@ impl HomePage {
                 } else {
                     let mutex = std::sync::Arc::new(tokio::sync::Mutex::new(()));
                     let img = crate::ui::image::setimage(latest.Id.clone(), mutex.clone());
-                    let overlay = gtk::Overlay::builder()
-                        .child(&img)
-                        .build();
+                    let overlay = gtk::Overlay::builder().child(&img).build();
                     if let Some(userdata) = &latest.UserData {
                         if let Some(unplayeditemcount) = userdata.UnplayedItemCount {
                             if unplayeditemcount > 0 {
-                                let mark = gtk::Label::new(Some(&userdata.UnplayedItemCount.expect("no unplayeditemcount").to_string()));
+                                let mark = gtk::Label::new(Some(
+                                    &userdata
+                                        .UnplayedItemCount
+                                        .expect("no unplayeditemcount")
+                                        .to_string(),
+                                ));
                                 mark.set_valign(gtk::Align::Start);
                                 mark.set_halign(gtk::Align::End);
                                 mark.set_height_request(40);
@@ -385,7 +390,7 @@ impl HomePage {
                         .timeout(3)
                         .build();
                     obj.imp().toast.add_toast(toast);
-                }      
+                }
                 let window = obj.root();
                 if let Some(window) = window {
                     if window.is::<Window>() {
