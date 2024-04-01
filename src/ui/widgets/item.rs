@@ -3,7 +3,6 @@ use adw::subclass::prelude::*;
 use glib::Object;
 use gtk::prelude::*;
 use gtk::{gio, glib};
-use std::{env, path::PathBuf};
 
 mod imp {
     use crate::ui::network;
@@ -13,7 +12,7 @@ mod imp {
     use gtk::{glib, CompositeTemplate};
     use std::cell::{OnceCell, Ref};
 
-    use super::get_thum_dir;
+    use crate::ui::config::Dir;
     use std::collections::{HashMap, HashSet};
     // Object holding the state
     #[derive(CompositeTemplate, Default, glib::Properties)]
@@ -102,7 +101,7 @@ mod imp {
             let id = obj.id();
             let idc = id.clone();
             let inid = obj.inid();
-            let pathbuf = get_thum_dir().join(format!("b{}.png", id));
+            let pathbuf = Dir::get_cache_dir().join(format!("b{}.png", id));
             let backdrop = self.backdrop.get();
             let (sender, receiver) = async_channel::bounded::<String>(1);
             let idclone = id.clone();
@@ -124,7 +123,7 @@ mod imp {
 
             glib::spawn_future_local(async move {
                 while let Ok(_) = receiver.recv().await {
-                    let pathbuf = get_thum_dir().join(format!("b{}.png", idclone));
+                    let pathbuf = Dir::get_cache_dir().join(format!("b{}.png", idclone));
                     let file = gtk::gio::File::for_path(&pathbuf);
                     backdrop.set_file(Some(&file));
                 }
@@ -671,13 +670,4 @@ impl ItemPage {
         let actorlist = imp.actorlist.get();
         actorscrolled.set_child(Some(&actorlist));
     }
-}
-
-fn get_thum_dir() -> PathBuf {
-    #[cfg(unix)]
-    let path = dirs::home_dir().unwrap().join(".local/share/tsukimi");
-    #[cfg(windows)]
-    let path = env::current_dir().unwrap().join("thumbnails");
-
-    return path;
 }

@@ -2,7 +2,7 @@ use reqwest;
 use serde::{Deserialize, Serialize};
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use std::env;
-use std::fs;
+use std::{fs, path::PathBuf};
 use toml;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -112,15 +112,7 @@ impl MPVClient {
 }
 
 fn get_proxy_info() -> String {
-    #[cfg(unix)]
-    let config_path = dirs::home_dir().unwrap().join(".config/tsukimi.toml");
-
-    #[cfg(windows)]
-    let config_path = env::current_dir()
-        .unwrap()
-        .join("config")
-        .join("tsukimi.toml");
-
+    let config_path = Dir::get_config_path();
     let data = std::fs::read_to_string(&config_path).unwrap();
     let config: Config = toml::from_str(&data).unwrap();
     return config.proxy;
@@ -135,14 +127,7 @@ fn default_mpv() -> String {
 }
 
 fn mpv() -> String {
-    #[cfg(unix)]
-    let config_path = dirs::home_dir().unwrap().join(".config/tsukimi.toml");
-
-    #[cfg(windows)]
-    let config_path = env::current_dir()
-        .unwrap()
-        .join("config")
-        .join("tsukimi.toml");
+    let config_path = Dir::get_config_path();
 
     let data = std::fs::read_to_string(&config_path).unwrap();
     let config: Config = toml::from_str(&data).unwrap();
@@ -169,17 +154,7 @@ pub fn get_server_info() -> ServerInfo {
         access_token: String::new(),
         port: String::new(),
     };
-    #[cfg(unix)]
-    let path = dirs::home_dir()
-        .unwrap()
-        .join(".config")
-        .join("tsukimi.toml");
-
-    #[cfg(windows)]
-    let path = env::current_dir()
-        .unwrap()
-        .join("config")
-        .join("tsukimi.toml");
+    let path = Dir::get_config_path();
 
     if path.exists() {
         let data = fs::read_to_string(path).expect("read config file failed");
@@ -191,4 +166,35 @@ pub fn get_server_info() -> ServerInfo {
     };
 
     server_info
+}
+
+pub struct Dir;
+
+impl Dir {
+    pub fn get_cache_dir() -> PathBuf {
+        #[cfg(unix)]
+        let pathbuf = dirs::home_dir().unwrap().join(".local/share/tsukimi");
+
+        #[cfg(windows)]
+        let pathbuf = env::current_dir().unwrap().parent().unwrap().join("cache");
+
+        return pathbuf;
+    }
+
+    pub fn get_config_path() -> PathBuf {
+        #[cfg(unix)]
+        let path = dirs::home_dir()
+            .unwrap()
+            .join(".config")
+            .join("tsukimi.toml");
+
+        #[cfg(windows)]
+        let path = env::current_dir()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("config")
+            .join("tsukimi.toml");
+        return path;
+    }
 }

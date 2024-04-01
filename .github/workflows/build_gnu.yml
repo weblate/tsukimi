@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - 'feature/win'
-  schedule:
-    - cron: '50 5 * * *'
+  # schedule:
+  #   - cron: '50 5 * * *'
 
 env:
   CARGO_TERM_COLOR: always
@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch-name: x86_64-windows-gnu
+          - arch: x86_64-windows-gnu
             os: windows-latest
             target: x86_64-pc-windows-gnu
             artifact: tsukimi.exe
@@ -40,16 +40,26 @@ jobs:
       - name: Build ${{matrix.target}}
         run: |
           $env:Path = "C:\msys64\usr\bin;C:\msys64\mingw64\bin;C:\msys64\mingw64\lib;C:\msys64\mingw64\include;" + $env:Path;
-          cargo build --release --locked
-          mkdir C:/artifacts
-          cp target/release/${{matrix.artifact}} C:/artifacts/
-          cd C:/msys64/mingw64/bin
-          cp *.dll C:/artifacts/
+          cargo build --release --locked --target ${{matrix.target}}
+          mkdir artifact && cd artifact
+          mkdir tsukimi-windows-gnu-amd64/ && cd tsukimi-windows-gnu-amd64/ && mkdir bin/ && mkdir share/ && mkdir lib/
+          cp ../../target/${{matrix.target}}/release/${{ matrix.artifact }} bin/
+          cp C:/msys64/mingw64/bin/*.dll bin/
+          cp -recurse C:/msys64/mingw64/lib/gdk-pixbuf-2.0 lib/
+          remove-item lib/gdk-pixbuf-2.0/2.10.0/loaders/* -exclude "*svg.dll"
+          cp -recurse C:/msys64/mingw64/share/glib-2.0 share/
+          get-childitem -recurse -path share/glib-2.0/* -exclude "*gschemas.compiled*"|remove-item -recurse
+          cp -recurse C:/msys64/mingw64/share/icons share/
+          remove-item -recurse share/icons/hicolor && remove-item -recurse share/icons/Adwaita/scalable && remove-item -recurse share/icons/Adwaita/cursors
+          remove-item -recurse share/icons/Adwaita/16x16 && remove-item -recurse share/icons/Adwaita/symbolic-up-to-32
+          gci -directory -recurse .|where-object {$_.getfilesysteminfos().count -eq 0}|remove-item -recurse 
+          cd ..
+          compress-archive -path ./* -destinationpath ./tsukimi-${{matrix.arch}}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tsukimi-${{matrix.arch-name}}
-          path: C:/artifacts/*
+          name: tsukimi-${{matrix.arch}}
+          path: artifact/*.zip
           compression-level: 5
           retention-days: 3

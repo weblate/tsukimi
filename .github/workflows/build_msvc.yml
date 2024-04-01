@@ -1,11 +1,11 @@
 name: feature/win - Windows MSVC CI
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'feature/win'
-  schedule:
-    - cron: '5 6 * * *'
+  # push:
+  #   branches:
+  #     - 'feature/win'
+  # schedule:
+  #   - cron: '5 6 * * *'
 
 env:
   CARGO_TERM_COLOR: always

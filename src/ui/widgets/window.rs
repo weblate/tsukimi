@@ -1,10 +1,8 @@
+use crate::ui::config::Dir;
 use adw::prelude::NavigationPageExt;
-#[cfg(unix)]
-use dirs::home_dir;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-#[cfg(windows)]
-use std::env;
+
 mod imp {
     use adw::subclass::application_window::AdwApplicationWindowImpl;
     use glib::subclass::InitializingObject;
@@ -243,14 +241,7 @@ impl Window {
     }
 
     fn loginenter(&self) {
-        #[cfg(unix)]
-        let path = home_dir().unwrap().join(".config/tsukimi.toml");
-        #[cfg(windows)]
-        let path = env::current_dir()
-            .unwrap()
-            .join("config")
-            .join("tsukimi.toml");
-
+        let path = Dir::get_config_path();
         if path.exists() {
             self.mainpage();
         }

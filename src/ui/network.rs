@@ -1,14 +1,12 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use super::config::{get_server_info, Config, ReqClient};
+use super::config::{get_server_info, Config, Dir, ReqClient};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Error;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_json::Value;
-#[cfg(windows)]
-use std::env;
 use std::fs::{self, write};
 use std::sync::OnceLock;
 use std::time::Duration;
@@ -41,7 +39,7 @@ pub async fn login(
     headers.insert("X-Emby-Client", HeaderValue::from_static("Emby Web"));
     headers.insert(
         "X-Emby-Device-Name",
-        HeaderValue::from_static("Google Chrome Linux"),
+        HeaderValue::from_static("Google Chrome"),
     );
     headers.insert(
         "X-Emby-Device-Id",
@@ -89,17 +87,7 @@ pub async fn login(
     };
     let toml = to_string(&config).unwrap();
 
-    #[cfg(unix)]
-    let path = dirs::home_dir()
-        .unwrap()
-        .join(".config")
-        .join("tsukimi.toml");
-
-    #[cfg(windows)]
-    let path = env::current_dir()
-        .unwrap()
-        .join("config")
-        .join("tsukimi.toml");
+    let path = Dir::get_config_path();
 
     if path.exists() {
         write(path, toml).unwrap();
@@ -442,11 +430,7 @@ pub async fn get_image(id: String) -> Result<String, Error> {
             let bytes_result = response.bytes().await;
             match bytes_result {
                 Ok(bytes) => {
-                    #[cfg(unix)]
-                    let pathbuf = dirs::home_dir().unwrap().join(".local/share/tsukimi");
-
-                    #[cfg(windows)]
-                    let pathbuf = env::current_dir().unwrap().join("thumbnails");
+                    let pathbuf = Dir::get_cache_dir();
 
                     if pathbuf.exists() {
                         fs::write(pathbuf.join(format!("{}.png", id)), &bytes).unwrap();
@@ -486,11 +470,7 @@ pub async fn get_thumbimage(id: String) -> Result<String, Error> {
             let bytes_result = response.bytes().await;
             match bytes_result {
                 Ok(bytes) => {
-                    #[cfg(unix)]
-                    let pathbuf = dirs::home_dir().unwrap().join(".local/share/tsukimi");
-
-                    #[cfg(windows)]
-                    let pathbuf = env::current_dir().unwrap().join("thumbnails");
+                    let pathbuf = Dir::get_cache_dir();
 
                     if pathbuf.exists() {
                         fs::write(pathbuf.join(format!("t{}.png", id)), &bytes).unwrap();
@@ -530,11 +510,7 @@ pub async fn get_backdropimage(id: String) -> Result<String, Error> {
             let bytes_result = response.bytes().await;
             match bytes_result {
                 Ok(bytes) => {
-                    #[cfg(unix)]
-                    let pathbuf = dirs::home_dir().unwrap().join(".local/share/tsukimi");
-
-                    #[cfg(windows)]
-                    let pathbuf = env::current_dir().unwrap().join("thumbnails");
+                    let pathbuf = Dir::get_cache_dir();
 
                     if pathbuf.exists() {
                         fs::write(pathbuf.join(format!("b{}.png", id)), &bytes).unwrap();
@@ -574,11 +550,7 @@ pub async fn get_logoimage(id: String) -> Result<String, Error> {
             let bytes_result = response.bytes().await;
             match bytes_result {
                 Ok(bytes) => {
-                    #[cfg(unix)]
-                    let pathbuf = dirs::home_dir().unwrap().join(".local/share/tsukimi");
-
-                    #[cfg(windows)]
-                    let pathbuf = env::current_dir().unwrap().join("thumbnails");
+                    let pathbuf = Dir::get_cache_dir();
 
                     if pathbuf.exists() {
                         fs::write(pathbuf.join(format!("l{}.png", id)), &bytes).unwrap();

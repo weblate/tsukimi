@@ -83,7 +83,9 @@ mod imp {
             #[cfg(windows)]
             let pathbuf = env::current_dir()
                 .unwrap()
-                .join("thumbnails")
+                .parent()
+                .unwrap()
+                .join("cache")
                 .join(format!("b{}.png", id));
 
             let backdrop = self.backdrop.get();
@@ -116,7 +118,9 @@ mod imp {
                     #[cfg(windows)]
                     let path = env::current_dir()
                         .unwrap()
-                        .join("thumbnails")
+                        .parent()
+                        .unwrap()
+                        .join("cache")
                         .join(format!("b{}.png", idclone));
 
                     let file = gtk::gio::File::for_path(&path);

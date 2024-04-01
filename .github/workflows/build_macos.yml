@@ -1,11 +1,11 @@
 name: feature/win - MacOS CI
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'feature/win'
-  schedule:
-    - cron: '55 5 * * *'
+  # push:
+  #   branches:
+  #     - 'feature/win'
+  # schedule:
+  #   - cron: '55 5 * * *'
 
 env:
   CARGO_TERM_COLOR: always
