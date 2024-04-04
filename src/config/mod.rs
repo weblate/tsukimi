@@ -42,8 +42,20 @@ pub fn load_cfg() {
 
         let uuid = generate_uuid();
         env::set_var("UUID", &uuid);
-        let mpv_config_file = env::current_dir().unwrap().parent().unwrap().join("mpv");
 
+        let mpv_config_file = env::current_dir().unwrap().parent().unwrap().join("mpv");
+        let mpv_config = if mpv_config_file.exists() {
+            "true"
+        } else {
+            "false"
+        };
+        env::set_var("MPV_CONFIG", mpv_config);
+        env::set_var("MPV_CONFIG_DIR", mpv_config_file.display().to_string());
+    } else {
+        let uuid = generate_uuid();
+        env::set_var("UUID", &uuid);
+
+        let mpv_config_file = env::current_dir().unwrap().parent().unwrap().join("mpv");
         let mpv_config = if mpv_config_file.exists() {
             "true"
         } else {
