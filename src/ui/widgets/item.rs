@@ -7,6 +7,8 @@ use crate::ui::network::SeriesInfo;
 
 mod imp {
     use crate::ui::network;
+    // use crate::ui::widgets::settings;
+    use crate::APP_ID;
     use adw::subclass::prelude::*;
     use glib::subclass::InitializingObject;
     use gtk::prelude::*;
@@ -101,19 +103,15 @@ mod imp {
             let id = obj.id();
             let idc = id.clone();
             let inid = obj.inid();
-            // let path = format!(
-            //     "{}/.local/share/tsukimi/b{}.png",
-            //     dirs::home_dir().expect("msg").display(),
-            //     id
-            // );
             let pathbuf = env::current_dir()
                 .unwrap()
                 .parent()
                 .unwrap()
                 .join("cache")
                 .join(format!("b{}.png", id));
-            // let pathbuf = PathBuf::from(&path);
             let backdrop = self.backdrop.get();
+            let settings = gtk::gio::Settings::new(APP_ID);
+            backdrop.set_height_request(settings.int("background-height"));
             let (sender, receiver) = async_channel::bounded::<String>(1);
             let idclone = id.clone();
             if pathbuf.exists() {
@@ -134,11 +132,6 @@ mod imp {
 
             glib::spawn_future_local(async move {
                 while let Ok(_) = receiver.recv().await {
-                    // let path = format!(
-                    //     "{}/.local/share/tsukimi/b{}.png",
-                    //     dirs::home_dir().expect("msg").display(),
-                    //     idclone
-                    // );
                     let path = env::current_dir()
                         .unwrap()
                         .parent()

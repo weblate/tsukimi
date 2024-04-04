@@ -1,6 +1,9 @@
 use super::mpv;
 use super::network;
+use super::network::get_sub;
+use super::network::runtime;
 use super::network::Back;
+use super::network::Media;
 use super::network::SeriesInfo;
 use gtk::glib;
 use gtk::prelude::*;
@@ -102,7 +105,7 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                         playsessionid: playback_info.PlaySessionId.clone(),
                         tick: 0.,
                     };
-                    play_event(button.clone(), directurl, media.Name, back);
+                    play_event(button.clone(), directurl, None, media.Name, back);
                     return;
                 }
             }
@@ -119,7 +122,7 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                         if displaytitle == subselected {
                             if let Some(directurl) = media.DirectStreamUrl.clone() {
                                 if mediastream.IsExternal == true {
-                                    if let Some(_suburl) = mediastream.DeliveryUrl.clone() {
+                                    if let Some(suburl) = mediastream.DeliveryUrl.clone() {
                                         let back = Back {
                                             id: info.Id.clone(),
                                             mediasourceid: media.Id.clone(),
@@ -129,8 +132,19 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                                         play_event(
                                             button.clone(),
                                             Some(directurl),
+                                            Some(suburl),
                                             media.Name,
                                             back,
+                                        );
+                                        return;
+                                    } else {
+                                        // Ask Luke
+                                        set_sub(
+                                            info.Id.clone(),
+                                            media.Id.clone(),
+                                            nameselected.to_string(),
+                                            subselected.to_string(),
+                                            button.clone(),
                                         );
                                         return;
                                     }
@@ -141,7 +155,13 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                                         playsessionid: playback_info.PlaySessionId.clone(),
                                         tick: 0.,
                                     };
-                                    play_event(button.clone(), Some(directurl), media.Name, back);
+                                    play_event(
+                                        button.clone(),
+                                        Some(directurl),
+                                        None,
+                                        media.Name,
+                                        back,
+                                    );
                                     return;
                                 }
                             }
@@ -157,13 +177,19 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
     hbox
 }
 
-pub fn play_event(button: gtk::Button, directurl: Option<String>, name: String, back: Back) {
+pub fn play_event(
+    button: gtk::Button,
+    directurl: Option<String>,
+    suburl: Option<String>,
+    name: String,
+    back: Back,
+) {
     let (sender, receiver) = async_channel::bounded(1);
     gtk::gio::spawn_blocking(move || {
         sender
             .send_blocking(false)
             .expect("The channel needs to be open.");
-        match mpv::event::play(directurl.expect("no url"), None, Some(name), back) {
+        match mpv::event::play(directurl.expect("no url"), suburl, Some(name), back) {
             Ok(_) => {
                 sender
                     .send_blocking(true)
@@ -182,4 +208,58 @@ pub fn play_event(button: gtk::Button, directurl: Option<String>, name: String, 
             button.set_sensitive(enable_button);
         }
     }));
+}
+
+pub fn set_sub(
+    id: String,
+    sourceid: String,
+    nameselected: String,
+    subselected: String,
+    button: gtk::Button,
+) {
+    let (sender, receiver) = async_channel::bounded::<Media>(1);
+    let idc = id.clone();
+    runtime().spawn(async move {
+        match get_sub(idc, sourceid).await {
+            Ok(media) => {
+                sender.send(media).await.expect("series_info not received.");
+            }
+            Err(e) => eprintln!("Error: {}", e),
+        }
+    });
+    glib::spawn_future_local(async move {
+        while let Ok(media) = receiver.recv().await {
+            for mediasource in media.MediaSources.clone() {
+                if mediasource.Name == nameselected.to_string() {
+                    for mediastream in mediasource.MediaStreams {
+                        if mediastream.Type == "Subtitle" {
+                            let displaytitle = mediastream.DisplayTitle.unwrap_or("".to_string());
+                            if displaytitle == subselected {
+                                if let Some(directurl) = mediasource.DirectStreamUrl.clone() {
+                                    if mediastream.IsExternal == true {
+                                        if let Some(suburl) = mediastream.DeliveryUrl.clone() {
+                                            let back = Back {
+                                                id: id.clone(),
+                                                mediasourceid: mediasource.Id.clone(),
+                                                playsessionid: media.PlaySessionId.clone(),
+                                                tick: 0.,
+                                            };
+                                            play_event(
+                                                button.clone(),
+                                                Some(directurl),
+                                                Some(suburl),
+                                                mediasource.Name,
+                                                back,
+                                            );
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
