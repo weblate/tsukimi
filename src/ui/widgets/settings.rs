@@ -1,6 +1,5 @@
 use adw::prelude::*;
 use glib::Object;
-// use gtk::prelude::*;
 use gtk::{gio, glib, subclass::prelude::*};
 
 use crate::APP_ID;

@@ -48,7 +48,7 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Bac
         } else {
             ()
         }
-        
+
         Ok(())
     })
     .unwrap();

@@ -1,8 +1,6 @@
-// use super::mpv;
 use super::network;
 use super::network::Back;
 use super::network::SearchResult;
-// use super::network::SeriesInfo;
 use super::new_dropsel::play_event;
 use gtk::prelude::*;
 use gtk::Orientation;
@@ -96,7 +94,7 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SearchResult) -> gtk:
                         playsessionid: playback_info.PlaySessionId.clone(),
                         tick: 0.,
                     };
-                    play_event(button.clone(),directurl,None,media.Name,back);
+                    play_event(button.clone(), directurl, None, media.Name, back);
                     return;
                 }
             }
@@ -119,11 +117,23 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SearchResult) -> gtk:
                                             playsessionid: playback_info.PlaySessionId.clone(),
                                             tick: 0.,
                                         };
-                                        play_event(button.clone(),Some(directurl),Some(suburl),media.Name,back);
+                                        play_event(
+                                            button.clone(),
+                                            Some(directurl),
+                                            Some(suburl),
+                                            media.Name,
+                                            back,
+                                        );
                                         return;
                                     } else {
-                                        super::new_dropsel::set_sub(info.Id.clone(),media.Id.clone(),nameselected.to_string(),subselected.to_string(),button.clone());
-                                        return; 
+                                        super::new_dropsel::set_sub(
+                                            info.Id.clone(),
+                                            media.Id.clone(),
+                                            nameselected.to_string(),
+                                            subselected.to_string(),
+                                            button.clone(),
+                                        );
+                                        return;
                                     }
                                 } else {
                                     let back = Back {
@@ -132,7 +142,13 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SearchResult) -> gtk:
                                         playsessionid: playback_info.PlaySessionId.clone(),
                                         tick: 0.,
                                     };
-                                    play_event(button.clone(),Some(directurl),None,media.Name,back);
+                                    play_event(
+                                        button.clone(),
+                                        Some(directurl),
+                                        None,
+                                        media.Name,
+                                        back,
+                                    );
                                     return;
                                 }
                             }
