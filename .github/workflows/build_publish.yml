@@ -46,12 +46,14 @@ jobs:
           remove-item lib/gdk-pixbuf-2.0/2.10.0/loaders/* -exclude "*svg.dll"
           cp -recurse C:/msys64/mingw64/share/glib-2.0 share/
           get-childitem -recurse -path share/glib-2.0/* -exclude "*gschemas.compiled*"|remove-item -recurse
-          C:/msys64/mingw64/bin/glib-compile-schemas.exe ../../moe.tsuna.tsukimi.gschema.xml --targetdir="share/glib-2.0/schemas/"
+          mv ../../moe.tsuna.tsukimi.gschema.xml share/glib-2.0/schemas/
+          C:/msys64/mingw64/bin/glib-compile-schemas.exe share/glib-2.0/schemas/
+          remove-item share/glib-2.0/schemas/*.xml
           cp -recurse C:/msys64/mingw64/share/icons share/
           remove-item -recurse share/icons/hicolor && remove-item -recurse share/icons/Adwaita/scalable && remove-item -recurse share/icons/Adwaita/cursors
           remove-item -recurse share/icons/Adwaita/16x16 && remove-item -recurse share/icons/Adwaita/symbolic-up-to-32
           gci -directory -recurse .|where-object {$_.getfilesysteminfos().count -eq 0}|remove-item -recurse 
-          compress-archive -path ./* -destinationpath ../artifact/tsukimi-${{matrix.arch}}.zip
+          compress-archive -path ./* -destinationpath ../tsukimi-${{matrix.arch}}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
