@@ -1,4 +1,4 @@
-use super::mpv;
+// use super::mpv;
 use super::network;
 use super::network::Back;
 use super::network::SearchResult;
@@ -95,7 +95,7 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SearchResult) -> gtk:
                         playsessionid: playback_info.PlaySessionId.clone(),
                         tick: 0.,
                     };
-                    play_event(button.clone(),directurl,media.Name,back);
+                    play_event(button.clone(), directurl, media.Name, back);
                     return;
                 }
             }
@@ -118,9 +118,14 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SearchResult) -> gtk:
                                             playsessionid: playback_info.PlaySessionId.clone(),
                                             tick: 0.,
                                         };
-                                        play_event(button.clone(),Some(directurl),media.Name,back);
+                                        play_event(
+                                            button.clone(),
+                                            Some(directurl),
+                                            media.Name,
+                                            back,
+                                        );
                                         return;
-                                    } 
+                                    }
                                 } else {
                                     let back = Back {
                                         id: info.Id.clone(),
@@ -128,7 +133,7 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SearchResult) -> gtk:
                                         playsessionid: playback_info.PlaySessionId.clone(),
                                         tick: 0.,
                                     };
-                                    play_event(button.clone(),Some(directurl),media.Name,back);
+                                    play_event(button.clone(), Some(directurl), media.Name, back);
                                     return;
                                 }
                             }

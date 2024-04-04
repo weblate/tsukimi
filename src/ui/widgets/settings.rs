@@ -1,19 +1,15 @@
 use adw::prelude::*;
 use glib::Object;
-use gtk::{
-    gio,
-    glib,
-    subclass::prelude::*,
-};
-use gtk::prelude::*;
+// use gtk::prelude::*;
+use gtk::{gio, glib, subclass::prelude::*};
 
 use crate::APP_ID;
 
 mod imp {
 
     use glib::subclass::InitializingObject;
+    // use gtk::prelude::*;
     use gtk::subclass::prelude::*;
-    use gtk::prelude::*;
     use gtk::{glib, CompositeTemplate};
 
     // Object holding the state
@@ -24,7 +20,6 @@ mod imp {
         pub backcontrol: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub sidebarcontrol: TemplateChild<adw::SwitchRow>,
-
     }
 
     // The central trait for subclassing a GObject
@@ -87,20 +82,24 @@ impl SettingsPage {
     pub fn set_sidebar(&self) {
         let imp = imp::SettingsPage::from_obj(self);
         let settings = gio::Settings::new(APP_ID);
-        imp.sidebarcontrol.set_active(settings.boolean("is-overlay"));
-        imp.sidebarcontrol.connect_active_notify(glib::clone!(@weak self as obj =>move |control| {
-            let window = obj.root().unwrap().downcast::<super::window::Window>().unwrap();
-            window.overlay_sidebar(control.is_active());
-            settings.set_boolean("is-overlay", control.is_active()).unwrap();
-        }));
+        imp.sidebarcontrol
+            .set_active(settings.boolean("is-overlay"));
+        imp.sidebarcontrol
+            .connect_active_notify(glib::clone!(@weak self as obj =>move |control| {
+                let window = obj.root().unwrap().downcast::<super::window::Window>().unwrap();
+                window.overlay_sidebar(control.is_active());
+                settings.set_boolean("is-overlay", control.is_active()).unwrap();
+            }));
     }
 
     pub fn set_back(&self) {
         let imp = imp::SettingsPage::from_obj(self);
         let settings = gio::Settings::new(APP_ID);
-        imp.backcontrol.set_active(settings.boolean("is-progress-enabled"));
-        imp.backcontrol.connect_active_notify(glib::clone!(@weak self as obj =>move |control| {
-            settings.set_boolean("is-progress-enabled", control.is_active()).unwrap();
-        }));
+        imp.backcontrol
+            .set_active(settings.boolean("is-progress-enabled"));
+        imp.backcontrol
+            .connect_active_notify(glib::clone!(@weak self as obj =>move |control| {
+                settings.set_boolean("is-progress-enabled", control.is_active()).unwrap();
+            }));
     }
 }

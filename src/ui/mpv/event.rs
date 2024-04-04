@@ -1,12 +1,19 @@
 use gtk::prelude::*;
 use libmpv::{events::*, *};
 
-use std::{collections::HashMap, env, thread, time::{Duration, Instant}};
+use std::{
+    collections::HashMap,
+    env, thread,
+    time::{Duration, Instant},
+};
 
-use crate::{config::set_config, ui::network::{runtime, Back}, APP_ID};
+use crate::{
+    config::set_config,
+    ui::network::{runtime, Back},
+    APP_ID,
+};
 
-pub fn play(url:String,suburl:Option<String>,name:Option<String>,back:Back) -> Result<()> {
-
+pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Back) -> Result<()> {
     let id = back.id;
     let mediasourceid = back.mediasourceid;
     let playsessionid = back.playsessionid;
@@ -29,10 +36,22 @@ pub fn play(url:String,suburl:Option<String>,name:Option<String>,back:Back) -> R
         if let Some(name) = name {
             init.set_property("force-media-title", name)?;
         }
+        if env::var("EMBY_PROXY").unwrap().is_empty() {
+            ()
+        } else {
+            init.set_property("http-proxy", env::var("EMBY_PROXY").unwrap())?;
+        }
+
+        let config_path = env::var("MPV_CONFIG_DIR").unwrap();
+        if env::var("MPV_CONFIG").unwrap() == "true" {
+            init.set_property("config-dir", config_path)?;
+        } else {
+            ()
+        }
         
-    
         Ok(())
-    }).unwrap();
+    })
+    .unwrap();
     mpv.set_property("volume", 75)?;
 
     let mut ev_ctx = mpv.create_event_context();
@@ -48,8 +67,7 @@ pub fn play(url:String,suburl:Option<String>,name:Option<String>,back:Back) -> R
             if let Some(suburl) = suburl {
                 let suburl = format!("{}:{}/emby{}", server_info.domain, server_info.port, suburl);
                 println!("Loading subtitle: {}", suburl);
-                mpv.subtitle_add_select(&suburl, None, None)
-                 .unwrap();
+                mpv.subtitle_add_select(&suburl, None, None).unwrap();
             }
         });
         let mut last_print = Instant::now();
@@ -75,7 +93,7 @@ pub fn play(url:String,suburl:Option<String>,name:Option<String>,back:Back) -> R
                     println!("Exiting! Reason: {:?}", r);
                     break;
                 }
-                
+
                 Ok(Event::PropertyChange {
                     name: "time-pos",
                     change: PropertyData::Double(mpv_node),
@@ -83,9 +101,11 @@ pub fn play(url:String,suburl:Option<String>,name:Option<String>,back:Back) -> R
                 }) => {
                     if last_print.elapsed() >= Duration::from_secs(10) {
                         std::env::set_var("DURATION", mpv_node.to_string());
-                            last_print = Instant::now();
-                            let settings = gtk::gio::Settings::new(APP_ID);
-                            if last_print.elapsed() >= Duration::from_secs(300) || settings.boolean("is-progress-enabled") {
+                        last_print = Instant::now();
+                        let settings = gtk::gio::Settings::new(APP_ID);
+                        if last_print.elapsed() >= Duration::from_secs(300)
+                            || settings.boolean("is-progress-enabled")
+                        {
                             if let Ok(duration) = env::var("DURATION") {
                                 let tick = duration.parse::<f64>().unwrap() * 10000000.0;
                                 let back = Back {

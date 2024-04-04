@@ -1,8 +1,8 @@
 #![windows_subsystem = "windows"]
 use gtk::prelude::*;
 use gtk::{gio, glib};
-mod ui;
 mod config;
+mod ui;
 
 const APP_ID: &str = "moe.tsuna.tsukimi";
 

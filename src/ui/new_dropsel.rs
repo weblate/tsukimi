@@ -102,7 +102,7 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                         playsessionid: playback_info.PlaySessionId.clone(),
                         tick: 0.,
                     };
-                    play_event(button.clone(),directurl,media.Name,back);
+                    play_event(button.clone(), directurl, media.Name, back);
                     return;
                 }
             }
@@ -113,7 +113,7 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
         for media in playback_info.MediaSources.clone() {
             if media.Name == nameselected.to_string() {
                 for mediastream in media.MediaStreams {
-                    let sub = subselected.clone();
+                    // let sub = subselected.clone();
                     if mediastream.Type == "Subtitle" {
                         let displaytitle = mediastream.DisplayTitle.unwrap_or("".to_string());
                         if displaytitle == subselected {
@@ -126,9 +126,14 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                                             playsessionid: playback_info.PlaySessionId.clone(),
                                             tick: 0.,
                                         };
-                                        play_event(button.clone(),Some(directurl),media.Name,back);
+                                        play_event(
+                                            button.clone(),
+                                            Some(directurl),
+                                            media.Name,
+                                            back,
+                                        );
                                         return;
-                                    } 
+                                    }
                                 } else {
                                     let back = Back {
                                         id: info.Id.clone(),
@@ -136,7 +141,7 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                                         playsessionid: playback_info.PlaySessionId.clone(),
                                         tick: 0.,
                                     };
-                                    play_event(button.clone(),Some(directurl),media.Name,back);
+                                    play_event(button.clone(), Some(directurl), media.Name, back);
                                     return;
                                 }
                             }
@@ -158,16 +163,16 @@ pub fn play_event(button: gtk::Button, directurl: Option<String>, name: String, 
         sender
             .send_blocking(false)
             .expect("The channel needs to be open.");
-        match mpv::event::play(directurl.expect("no url"),None,Some(name),back)  {
+        match mpv::event::play(directurl.expect("no url"), None, Some(name), back) {
             Ok(_) => {
                 sender
-                .send_blocking(true)
-                .expect("The channel needs to be open.");
+                    .send_blocking(true)
+                    .expect("The channel needs to be open.");
             }
             Err(e) => {
                 eprintln!("Failed to play: {}", e);
-            } 
-        };   
+            }
+        };
     });
     glib::spawn_future_local(glib::clone!(@weak button =>async move {
         while let Ok(enable_button) = receiver.recv().await {

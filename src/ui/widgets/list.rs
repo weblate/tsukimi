@@ -1,6 +1,6 @@
 use glib::Object;
 use gtk::prelude::*;
-use gtk::subclass::{prelude::*, widget};
+use gtk::subclass::prelude::*;
 use gtk::{gio, glib};
 
 use self::imp::Page;
@@ -16,7 +16,7 @@ mod imp {
     use glib::subclass::InitializingObject;
     use gtk::prelude::*;
     use gtk::subclass::prelude::*;
-    use gtk::{gio, glib, CompositeTemplate};
+    use gtk::{glib, CompositeTemplate};
 
     pub enum Page {
         Movie(Box<gtk::Widget>),
@@ -266,8 +266,8 @@ impl ListPage {
                 }
                 item_page = Page::Item(Box::new(ItemPage::new(result.Id.clone(),result.Id.clone()).into()));
                 obj.set(item_page);
-            } 
-        })); 
+            }
+        }));
         self.update();
     }
 
@@ -302,4 +302,3 @@ impl ListPage {
         }));
     }
 }
-

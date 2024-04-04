@@ -1,0 +1,97 @@
+name: feature/win - Publishing
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*-win
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+  RUST_BACKTRACE: full
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64-windows-gnu
+            os: windows-latest
+            target: x86_64-pc-windows-gnu
+            artifact: tsukimi.exe
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        if: ${{ matrix.target == 'x86_64-pc-windows-gnu' }}
+        run: |
+          rustup toolchain install stable-gnu
+          rustup default stable-gnu
+          C:\msys64\usr\bin\pacman.exe -S --needed --noconfirm mingw-w64-x86_64-gtk4 mingw-w64-x86_64-pkgconf mingw-w64-x86_64-gcc mingw-w64-x86_64-libadwaita mingw-w64-x86_64-mpv
+          C:\msys64\usr\bin\pacman.exe -Syu --noconfirm
+
+      - name: Build ${{ matrix.target }}
+        run: |
+          $env:Path = "C:\msys64\mingw64\bin;C:\msys64\mingw64\lib;C:\msys64\mingw64\include;" + $env:Path;
+          cargo build --release --locked
+          mkdir artifact && cd artifact
+          mkdir tsukimi-windows-gnu-amd64/ && cd tsukimi-windows-gnu-amd64/ && mkdir bin/ && mkdir share/ && mkdir lib/
+          cp ../../target/release/${{ matrix.artifact }} bin/
+          cp C:/msys64/mingw64/bin/*.dll bin/
+          cp -recurse C:/msys64/mingw64/lib/gdk-pixbuf-2.0 lib/
+          remove-item lib/gdk-pixbuf-2.0/2.10.0/loaders/* -exclude "*svg.dll"
+          cp -recurse C:/msys64/mingw64/share/glib-2.0 share/
+          get-childitem -recurse -path share/glib-2.0/* -exclude "*gschemas.compiled*"|remove-item -recurse
+          C:/msys64/mingw64/bin/glib-compile-schemas.exe ../../moe.tsuna.tsukimi.gschema.xml --targetdir="share/glib-2.0/schemas/"
+          cp -recurse C:/msys64/mingw64/share/icons share/
+          remove-item -recurse share/icons/hicolor && remove-item -recurse share/icons/Adwaita/scalable && remove-item -recurse share/icons/Adwaita/cursors
+          remove-item -recurse share/icons/Adwaita/16x16 && remove-item -recurse share/icons/Adwaita/symbolic-up-to-32
+          gci -directory -recurse .|where-object {$_.getfilesysteminfos().count -eq 0}|remove-item -recurse 
+          compress-archive -path ./* -destinationpath ../artifact/tsukimi-${{matrix.arch}}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsukimi-${{matrix.arch}}
+          path: |
+            artifact/tsukimi-*.zip
+          compression-level: 5
+          retention-days: 3
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+ 
+      - name: Package Windows GNU
+        run: |
+          mv tsukimi-x86_64-windows-gnu/*.zip .
+
+      - name: Calculate hash
+        run: |
+          sha512sum *.zip > tsukimi.sha512sum
+
+      - name: Get latest tag name
+        run: echo "TAG_NAME=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+
+      - name: Upload Github Assets
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            *.zip
+            tsukimi.sha512sum
+          tag_name: ${{ env.TAG_NAME }}

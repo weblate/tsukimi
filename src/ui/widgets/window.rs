@@ -1,15 +1,16 @@
+use std::env;
+
 use adw::prelude::NavigationPageExt;
-use dirs::home_dir;
-use gtk::prelude::*;
 use gio::Settings;
+use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 mod imp {
     use std::cell::OnceCell;
 
     use adw::subclass::application_window::AdwApplicationWindowImpl;
     use glib::subclass::InitializingObject;
-    use gtk::prelude::*;
     use gtk::gio::Settings;
+    use gtk::prelude::*;
     use gtk::subclass::prelude::*;
     use gtk::{glib, CompositeTemplate};
 
@@ -97,26 +98,27 @@ mod imp {
             obj.load_window_size();
             obj.loginenter();
             obj.homepage();
-            self.selectlist.connect_row_selected(glib::clone!(@weak obj => move |_, row| {
-                if let Some(row) = row {
-                    let num = row.index();
-                    match num {
-                        0 => {
-                            obj.homepage();
+            self.selectlist
+                .connect_row_selected(glib::clone!(@weak obj => move |_, row| {
+                    if let Some(row) = row {
+                        let num = row.index();
+                        match num {
+                            0 => {
+                                obj.homepage();
+                            }
+                            1 => {
+                                obj.historypage();
+                            }
+                            2 => {
+                                obj.searchpage();
+                            }
+                            3 => {
+                                obj.settingspage();
+                            }
+                            _ => {}
                         }
-                        1 => {
-                            obj.historypage();
-                        }
-                        2 => {
-                            obj.searchpage();
-                        }
-                        3 => {
-                            obj.settingspage();
-                        }
-                        _ => {}
                     }
-                }
-            }));
+                }));
         }
     }
 
@@ -125,7 +127,7 @@ mod imp {
 
     // Trait shared by all windows
     impl WindowImpl for Window {
-            // Save window state right before the window will be closed
+        // Save window state right before the window will be closed
         fn close_request(&self) -> glib::Propagation {
             // Save window size
             self.obj()
@@ -260,10 +262,11 @@ impl Window {
         imp.insidestack.set_visible_child_name("settingspage");
         imp.navipage.set_title("Preferences");
     }
-    
+
     fn sidebar(&self) {
         let imp = self.imp();
-        imp.split_view.set_show_sidebar(!imp.split_view.shows_sidebar());
+        imp.split_view
+            .set_show_sidebar(!imp.split_view.shows_sidebar());
     }
 
     pub fn overlay_sidebar(&self, overlay: bool) {
@@ -306,9 +309,12 @@ impl Window {
     }
 
     fn loginenter(&self) {
-        let mut path = home_dir().unwrap();
-        path.push(".config");
-        path.push("tsukimi.yaml");
+        let path = env::current_dir()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("config")
+            .join("tsukimi.toml");
         if path.exists() {
             self.mainpage();
         }
