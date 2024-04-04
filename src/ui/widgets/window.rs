@@ -1,9 +1,8 @@
-use std::env;
-
 use adw::prelude::NavigationPageExt;
 use gio::Settings;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
+use std::env;
 mod imp {
     use std::cell::OnceCell;
 
@@ -97,7 +96,6 @@ mod imp {
             obj.setup_settings();
             obj.load_window_size();
             obj.loginenter();
-            obj.homepage();
             self.selectlist
                 .connect_row_selected(glib::clone!(@weak obj => move |_, row| {
                     if let Some(row) = row {
@@ -146,6 +144,7 @@ mod imp {
 use glib::Object;
 use gtk::{gio, glib};
 
+use crate::config::load_cfg;
 use crate::ui::network::runtime;
 use crate::APP_ID;
 
@@ -298,7 +297,9 @@ impl Window {
             match receiver.recv().await {
                 Ok(_) => {
                     loginbutton.set_sensitive(false);
+                    load_cfg();
                     obj.mainpage();
+                    obj.homepage();
                 }
                 Err(_) => {
                     loginbutton.set_sensitive(true);
@@ -317,6 +318,7 @@ impl Window {
             .join("tsukimi.toml");
         if path.exists() {
             self.mainpage();
+            self.homepage();
         }
     }
 }
