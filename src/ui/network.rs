@@ -1,6 +1,3 @@
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-
 use crate::config::{self, get_device_name};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Error;
@@ -27,8 +24,6 @@ pub struct Config {
 }
 
 pub fn runtime() -> &'static Runtime {
-    // static RUNTIME: OnceLock<Runtime> = OnceLock::new();
-    // RUNTIME.get_or_init(|| Runtime::new().expect("Setting up tokio runtime needs to succeed."))
     const STACK_SIZE: usize = 6 * 1024 * 1024;
     static RUNTIME: OnceLock<Runtime> = OnceLock::new();
     RUNTIME.get_or_init(|| {
@@ -116,10 +111,14 @@ pub async fn login(
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct SearchResult {
-    pub Name: String,
-    pub Type: String,
-    pub Id: String,
-    pub UserData: Option<UserData>,
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Type")]
+    pub result_type: String,
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "UserData")]
+    pub user_data: Option<UserData>,
 }
 
 struct SearchModel {
@@ -175,12 +174,18 @@ pub(crate) async fn search(searchinfo: String) -> Result<Vec<SearchResult>, Erro
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct SeriesInfo {
-    pub Name: String,
-    pub Id: String,
-    pub Overview: Option<String>,
-    pub IndexNumber: u32,
-    pub ParentIndexNumber: u32,
-    pub UserData: Option<UserData>,
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "Overview")]
+    pub overview: Option<String>,
+    #[serde(rename = "IndexNumber")]
+    pub index_number: u32,
+    #[serde(rename = "ParentIndexNumber")]
+    pub parent_index_number: u32,
+    #[serde(rename = "UserData")]
+    pub user_data: Option<UserData>,
 }
 
 pub async fn get_series_info(id: String) -> Result<Vec<SeriesInfo>, Error> {
@@ -215,63 +220,94 @@ pub async fn get_series_info(id: String) -> Result<Vec<SeriesInfo>, Error> {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MediaStream {
-    pub DisplayTitle: Option<String>,
-    pub Type: String,
-    pub DeliveryUrl: Option<String>,
-    pub IsExternal: bool,
-
-    pub Title: Option<String>,
-    pub DisplayLanguage: Option<String>,
-
-    pub Codec: Option<String>,
-    pub BitRate: Option<u64>,
-    pub BitDepth: Option<u64>,
-    pub AverageFrameRate: Option<f64>,
-    pub Height: Option<u64>,
-    pub Width: Option<u64>,
-    pub PixelFormat: Option<String>,
-    pub ColorSpace: Option<String>,
-
-    pub SampleRate: Option<u64>,
-    pub Channels: Option<u64>,
-    pub ChannelLayout: Option<String>,
+    #[serde(rename = "DisplayTitle")]
+    pub display_title: Option<String>,
+    #[serde(rename = "Type")]
+    pub stream_type: String,
+    #[serde(rename = "DeliveryUrl")]
+    pub delivery_url: Option<String>,
+    #[serde(rename = "IsExternal")]
+    pub is_external: bool,
+    #[serde(rename = "Title")]
+    pub title: Option<String>,
+    #[serde(rename = "DisplayLanguage")]
+    pub display_language: Option<String>,
+    #[serde(rename = "Codec")]
+    pub codec: Option<String>,
+    #[serde(rename = "BitRate")]
+    pub bit_rate: Option<u64>,
+    #[serde(rename = "BitDepth")]
+    pub bit_depth: Option<u64>,
+    #[serde(rename = "AverageFrameRate")]
+    pub average_frame_rate: Option<f64>,
+    #[serde(rename = "Height")]
+    pub height: Option<u64>,
+    #[serde(rename = "Width")]
+    pub width: Option<u64>,
+    #[serde(rename = "PixelFormat")]
+    pub pixel_format: Option<String>,
+    #[serde(rename = "ColorSpace")]
+    pub color_space: Option<String>,
+    #[serde(rename = "SampleRate")]
+    pub sample_rate: Option<u64>,
+    #[serde(rename = "Channels")]
+    pub channels: Option<u64>,
+    #[serde(rename = "ChannelLayout")]
+    pub channel_layout: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MediaSource {
-    pub Id: String,
-    pub Name: String,
-    pub Size: u64,
-    pub Container: String,
-    pub DirectStreamUrl: Option<String>,
-    pub MediaStreams: Vec<MediaStream>,
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Size")]
+    pub size: u64,
+    #[serde(rename = "Container")]
+    pub container: String,
+    #[serde(rename = "DirectStreamUrl")]
+    pub direct_stream_url: Option<String>,
+    #[serde(rename = "MediaStreams")]
+    pub media_streams: Vec<MediaStream>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Media {
-    pub MediaSources: Vec<MediaSource>,
-    pub PlaySessionId: Option<String>,
+    #[serde(rename = "MediaSources")]
+    pub media_sources: Vec<MediaSource>,
+    #[serde(rename = "PlaySessionId")]
+    pub play_session_id: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Item {
-    pub ExternalUrls: Option<Vec<Urls>>,
-    pub Overview: Option<String>,
-    pub People: Option<Vec<People>>,
+    #[serde(rename = "ExternalUrls")]
+    pub external_urls: Option<Vec<Urls>>,
+    #[serde(rename = "Overview")]
+    pub overview: Option<String>,
+    #[serde(rename = "People")]
+    pub people: Option<Vec<People>>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct People {
-    pub Name: String,
-    pub Id: String,
-    pub Role: Option<String>,
-    pub Type: String,
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "Role")]
+    pub role: Option<String>,
+    #[serde(rename = "Type")]
+    pub people_type: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Urls {
-    pub Name: String,
-    pub Url: String,
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Url")]
+    pub url: String,
 }
 
 pub async fn get_item_overview(id: String) -> Result<Item, Error> {
@@ -335,23 +371,36 @@ pub async fn get_item_overview(id: String) -> Result<Item, Error> {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Resume {
-    pub Name: String,
-    pub Type: String,
-    pub Id: String,
-    pub SeriesId: Option<String>,
-    pub IndexNumber: Option<u32>,
-    pub ParentIndexNumber: Option<u32>,
-    pub ParentThumbItemId: Option<String>,
-    pub SeriesName: Option<String>,
-    pub UserData: Option<UserData>,
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Type")]
+    pub resume_type: String,
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "SeriesId")]
+    pub series_id: Option<String>,
+    #[serde(rename = "IndexNumber")]
+    pub index_number: Option<u32>,
+    #[serde(rename = "ParentIndexNumber")]
+    pub parent_index_number: Option<u32>,
+    #[serde(rename = "ParentThumbItemId")]
+    pub parent_thumb_item_id: Option<String>,
+    #[serde(rename = "SeriesName")]
+    pub series_name: Option<String>,
+    #[serde(rename = "UserData")]
+    pub user_data: Option<UserData>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct UserData {
-    pub PlayedPercentage: Option<f64>,
-    pub PlaybackPositionTicks: Option<u64>,
-    pub Played: bool,
-    pub UnplayedItemCount: Option<u32>,
+    #[serde(rename = "PlayedPercentage")]
+    pub played_percentage: Option<f64>,
+    #[serde(rename = "PlaybackPositionTicks")]
+    pub playback_position_ticks: Option<u64>,
+    #[serde(rename = "Played")]
+    pub played: bool,
+    #[serde(rename = "UnplayedItemCount")]
+    pub unplayed_item_count: Option<u32>,
 }
 struct ResumeModel {
     resume: Vec<Resume>,
@@ -661,9 +710,12 @@ pub async fn get_sub(id: String, sourceid: String) -> Result<Media, Error> {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct View {
-    pub Name: String,
-    pub Id: String,
-    pub CollectionType: Option<String>,
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "CollectionType")]
+    pub collection_type: Option<String>,
 }
 
 pub async fn get_library() -> Result<Vec<View>, Error> {
@@ -694,11 +746,16 @@ pub async fn get_library() -> Result<Vec<View>, Error> {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Latest {
-    pub Name: String,
-    pub Id: String,
-    pub Type: String,
-    pub UserData: Option<UserData>,
-    pub ProductionYear: Option<u32>,
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "Type")]
+    pub latest_type: String,
+    #[serde(rename = "UserData")]
+    pub user_data: Option<UserData>,
+    #[serde(rename = "ProductionYear")]
+    pub production_year: Option<u32>,
 }
 
 pub async fn get_latest(
@@ -785,15 +842,17 @@ pub async fn get_list(
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct List {
-    pub TotalRecordCount: u32,
-    pub Items: Vec<Latest>,
+    #[serde(rename = "TotalRecordCount")]
+    pub total_record_count: u32,
+    #[serde(rename = "Items")]
+    pub items: Vec<Latest>,
 }
 
 impl Default for List {
     fn default() -> Self {
         List {
-            TotalRecordCount: 0,
-            Items: Vec::new(),
+            total_record_count: 0,
+            items: Vec::new(),
         }
     }
 }

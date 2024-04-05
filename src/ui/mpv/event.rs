@@ -38,17 +38,17 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Bac
         if let Some(name) = name {
             init.set_property("force-media-title", name)?;
         }
-        if env::var("EMBY_PROXY").unwrap().is_empty() {
-            ()
-        } else {
-            init.set_property("http-proxy", env::var("EMBY_PROXY").unwrap())?;
-        }
-
         let config_path = env::var("MPV_CONFIG_DIR").unwrap();
         if env::var("MPV_CONFIG").unwrap() == "true" {
             init.set_property("config-dir", config_path)?;
         } else {
             ()
+        }
+
+        if env::var("EMBY_PROXY").unwrap().is_empty() {
+            ()
+        } else {
+            init.set_property("http-proxy", env::var("EMBY_PROXY").unwrap())?;
         }
 
         Ok(())
