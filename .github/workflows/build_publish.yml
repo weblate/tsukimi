@@ -50,6 +50,7 @@ jobs:
           C:/msys64/mingw64/bin/glib-compile-schemas.exe share/glib-2.0/schemas/
           remove-item share/glib-2.0/schemas/*.xml
           cp -recurse C:/msys64/mingw64/share/icons share/
+          cp ../../resources/ui/icons/tsukimi.png share/icons/
           remove-item -recurse share/icons/hicolor && remove-item -recurse share/icons/Adwaita/scalable && remove-item -recurse share/icons/Adwaita/cursors
           remove-item -recurse share/icons/Adwaita/16x16 && remove-item -recurse share/icons/Adwaita/symbolic-up-to-32
           gci -directory -recurse .|where-object {$_.getfilesysteminfos().count -eq 0}|remove-item -recurse 
