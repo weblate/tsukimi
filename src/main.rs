@@ -17,7 +17,9 @@ fn main() -> glib::ExitCode {
     // Load the CSS from the resource file
     app.connect_startup(|_| ui::load_css());
     // Connect to "activate" signal of `app`
-    app.connect_activate(ui::build_ui);
+    app.connect_activate(|app| ui::build_ui(app));
+
+    app.set_accels_for_action("win.about", &["<Ctrl>N"]);
 
     // Run the application
     app.run()

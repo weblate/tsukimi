@@ -31,6 +31,8 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Bac
     let mpv = Mpv::with_initializer(|init| {
         init.set_property("osc", true)?;
         init.set_property("config", true)?;
+        #[cfg(not(target_os = "windows"))]
+        init.set_property("input-vo-keyboard", true)?;
         init.set_property("input-default-bindings", true)?;
         init.set_property("force-window", "immediate")?;
         if let Some(name) = name {

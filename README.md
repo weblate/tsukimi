@@ -21,6 +21,26 @@ For Linux ~~Only~~.
 ## Build
 请见 [Dockerfile](https://github.com/tsukinaha/tsukimi/blob/main/Dockerfile)
 
+## MPV Config
+- Linux: 读取默认配置 (`$XDG_CONFIG_HOME/mpv`)
+- Windows: 
+首先读取以下路径中的配置
+```
+|__bin\
+|__share\
+|__lib\
+|__mpv\
+|    |__mpv.conf
+|    |__input.conf
+|    |__scripts\
+|    |    |__ .......
+|    |__ .......
+|__config\
+```
+如果没有配置，则读取环境变量`$MPV_HOME`，都没有则保持libmpv默认行为
+
+**具体配置请见:[MPV-manual#files](https://mpv.io/manual/master/#files)**
+
 ## Credits
 - [gtk4-rs](https://github.com/gtk-rs/gtk4-rs)
 - [MPV](https://github.com/mpv-player/mpv)

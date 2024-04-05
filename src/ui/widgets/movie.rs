@@ -2,6 +2,8 @@ use adw::subclass::prelude::*;
 use glib::Object;
 use gtk::prelude::*;
 use gtk::{gio, glib};
+
+use super::fix::fix;
 mod imp {
     use crate::ui::network::{self, runtime, SearchResult};
     use crate::APP_ID;
@@ -248,8 +250,9 @@ impl MoviePage {
                         .hscrollbar_policy(gtk::PolicyType::Automatic)
                         .vscrollbar_policy(gtk::PolicyType::Never)
                         .overlay_scrolling(true)
-                        .sensitive(false)
                         .build();
+
+                    let mediascrolled = fix(mediascrolled);
 
                     let mediabox = gtk::Box::new(gtk::Orientation::Horizontal, 5);
                     for mediapart in mediasource.MediaStreams {
@@ -346,7 +349,7 @@ impl MoviePage {
 
     pub fn setlinksscrolled(&self, links: Vec<crate::ui::network::Urls>) {
         let imp = self.imp();
-        let linksscrolled = imp.linksscrolled.get();
+        let linksscrolled = fix(imp.linksscrolled.get());
         let linksrevealer = imp.linksrevealer.get();
         if !links.is_empty() {
             linksrevealer.set_reveal_child(true);
@@ -379,7 +382,7 @@ impl MoviePage {
 
     pub fn setactorscrolled(&self, actors: Vec<crate::ui::network::People>) {
         let imp = self.imp();
-        let actorscrolled = imp.actorscrolled.get();
+        let actorscrolled = fix(imp.actorscrolled.get());
         let actorrevealer = imp.actorrevealer.get();
         if !actors.is_empty() {
             actorrevealer.set_reveal_child(true);

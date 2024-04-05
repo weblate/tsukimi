@@ -1,4 +1,5 @@
 pub mod episoderow;
+pub mod fix;
 pub mod history;
 pub mod home;
 pub mod item;
