@@ -58,7 +58,7 @@ pub fn play(
 
         let proxy = settings.string("proxy");
         if !settings.string("proxy").is_empty() {
-            init.set_property("proxy", proxy.as_str())?;
+            init.set_property("http-proxy", proxy.as_str())?;
         }
 
         let config_path = env::var("MPV_CONFIG_DIR").unwrap();
