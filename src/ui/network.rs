@@ -858,11 +858,11 @@ pub struct Back {
     pub id: String,
     pub playsessionid: Option<String>,
     pub mediasourceid: String,
-    pub tick: f64,
+    pub tick: u64,
 }
 
 pub async fn positionback(back: Back) {
-    let tick = back.tick.to_string();
+    let tick = back.tick;
     let server_info = config::set_config();
     let client = ReqClient::new();
     let url = format!(
@@ -891,7 +891,7 @@ pub async fn positionback(back: Back) {
 }
 
 pub async fn positionstop(back: Back) {
-    let tick = back.tick.to_string();
+    let tick = back.tick;
     let server_info = config::set_config();
     let client = ReqClient::new();
     let url = format!(
@@ -920,7 +920,7 @@ pub async fn positionstop(back: Back) {
 }
 
 pub async fn playstart(back: Back) {
-    let tick = back.tick.to_string();
+    let tick = back.tick;
     let server_info = config::set_config();
     let client = ReqClient::new();
     let url = format!(
