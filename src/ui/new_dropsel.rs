@@ -188,7 +188,7 @@ pub fn play_event(
         sender
             .send_blocking(false)
             .expect("The channel needs to be open.");
-        match mpv::event::play(directurl.expect("no url"), suburl, Some(name), back) {
+        match mpv::event::play(directurl.expect("no url"), suburl, Some(name), &back) {
             Ok(_) => {
                 sender
                     .send_blocking(true)

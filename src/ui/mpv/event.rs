@@ -12,12 +12,7 @@ use crate::{
     ui::network::{runtime, Back},
     APP_ID,
 };
-
-pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Back) -> Result<()> {
-    let id = back.id;
-    let mediasourceid = back.mediasourceid;
-    let playsessionid = back.playsessionid;
-
+pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: &Back) -> Result<()> {
     unsafe {
         use libc::setlocale;
         use libc::LC_NUMERIC;
@@ -34,17 +29,23 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Bac
         #[cfg(not(target_os = "windows"))]
         init.set_property("input-vo-keyboard", true)?;
         init.set_property("input-default-bindings", true)?;
-        init.set_property("force-window", "immediate")?;
         if let Some(name) = name {
             init.set_property("force-media-title", name)?;
         }
+        let settings = gtk::gio::Settings::new(APP_ID);
+        if settings.boolean("is-fullscreen") {
+            init.set_property("fullscreen", true)?;
+        }
+        if settings.boolean("is-force-window") {
+            init.set_property("force-window", "immediate")?;
+        }
+
         let config_path = env::var("MPV_CONFIG_DIR").unwrap();
         if env::var("MPV_CONFIG").unwrap() == "true" {
             init.set_property("config-dir", config_path)?;
         } else {
             ()
         }
-
         if env::var("EMBY_PROXY").unwrap().is_empty() {
             ()
         } else {
@@ -60,6 +61,12 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Bac
     ev_ctx.disable_deprecated_events()?;
     ev_ctx.observe_property("volume", Format::Int64, 0)?;
     ev_ctx.observe_property("time-pos", Format::Double, 0)?;
+
+    let backc = back.clone();
+
+    runtime().spawn(async move {
+        crate::ui::network::playstart(backc).await;
+    });
 
     crossbeam::scope(|scope| {
         scope.spawn(|_| {
@@ -81,12 +88,8 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Bac
                         if let Ok(duration) = env::var("DURATION") {
                             println!("Duration: {}", duration);
                             let tick = duration.parse::<f64>().unwrap() * 10000000.0;
-                            let back = Back {
-                                id: id.clone(),
-                                mediasourceid: mediasourceid.clone(),
-                                playsessionid: playsessionid.clone(),
-                                tick,
-                            };
+                            let mut back = back.clone();
+                            back.tick = tick;
                             runtime().spawn(async move {
                                 crate::ui::network::positionstop(back).await;
                             });
@@ -110,12 +113,8 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: Bac
                         {
                             if let Ok(duration) = env::var("DURATION") {
                                 let tick = duration.parse::<f64>().unwrap() * 10000000.0;
-                                let back = Back {
-                                    id: id.clone(),
-                                    mediasourceid: mediasourceid.clone(),
-                                    playsessionid: playsessionid.clone(),
-                                    tick,
-                                };
+                                let mut back = back.clone();
+                                back.tick = tick;
                                 runtime().spawn(async move {
                                     crate::ui::network::positionback(back).await;
                                 });

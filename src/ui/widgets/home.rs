@@ -1,3 +1,5 @@
+use std::env;
+
 use glib::Object;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
@@ -5,24 +7,13 @@ use gtk::{gio, glib};
 
 use crate::ui::network::Latest;
 
-use self::imp::Page;
-use super::fix::fix;
-use super::item::ItemPage;
-use super::list::ListPage;
-use super::movie::MoviePage;
-use super::window::Window;
+use super::{fix::fix, item::ItemPage, list::ListPage, movie::MoviePage, window::Window};
 
 mod imp {
 
     use glib::subclass::InitializingObject;
     use gtk::subclass::prelude::*;
     use gtk::{glib, CompositeTemplate};
-
-    pub enum Page {
-        Movie(Box<gtk::Widget>),
-        Item(Box<gtk::Widget>),
-    }
-
     // Object holding the state
     #[derive(CompositeTemplate, Default)]
     #[template(resource = "/moe/tsukimi/home.ui")]
@@ -103,15 +94,6 @@ impl HomePage {
         Object::builder().build()
     }
 
-    fn set(&self, page: Page) {
-        let imp = self.imp();
-        let widget = match page {
-            Page::Movie(widget) => widget,
-            Page::Item(widget) => widget,
-        };
-        imp.root.set_child(Some(&*widget));
-    }
-
     pub fn set_library(&self) {
         let (sender, receiver) = async_channel::bounded::<Vec<crate::ui::network::View>>(3);
         crate::ui::network::runtime().spawn(async move {
@@ -135,6 +117,7 @@ impl HomePage {
             let object = glib::BoxedAnyObject::new(view.clone());
             store.append(&object);
         }
+        imp.selection.set_autoselect(false);
         imp.selection.set_model(Some(&store));
         let selection = &imp.selection;
         let factory = gtk::SignalListItemFactory::new();
@@ -211,16 +194,13 @@ impl HomePage {
                 let model = listview.model().unwrap();
                 let item = model.item(position).and_downcast::<glib::BoxedAnyObject>().unwrap();
                 let view: std::cell::Ref<crate::ui::network::View> = item.borrow();
-                let item_page = Page::Item(Box::new(ListPage::new(view.id.clone()).into()));
-                obj.set(item_page);
-                let window = obj.root();
-                if let Some(window) = window {
-                    if window.is::<Window>() {
-                        let window = window.downcast::<Window>().unwrap();
-                        window.set_title(&format!("{} - Date Created Descending",view.name));
-                    }
-                }};
-            ),
+                let item_page = ListPage::new(view.id.clone());
+                let window = obj.root().and_downcast::<Window>().unwrap();
+                window.imp().homeview.push(&item_page);
+                window.set_title(&view.name);
+                window.change_pop_visibility();
+                env::set_var("HOME_TITLE", &view.name)
+            }),
         );
         libscrolled.set_child(Some(&liblist));
     }
@@ -279,7 +259,10 @@ impl HomePage {
             let object = glib::BoxedAnyObject::new(latest.clone());
             store.append(&object);
         }
-        let selection = gtk::SingleSelection::new(Some(store));
+        let selection = gtk::SingleSelection::builder()
+            .model(&store)
+            .autoselect(false)
+            .build();
         let factory = gtk::SignalListItemFactory::new();
 
         factory.connect_setup(move |_, item| {
@@ -375,32 +358,33 @@ impl HomePage {
         });
         let listview = gtk::ListView::new(Some(selection), Some(factory));
         listview.set_orientation(gtk::Orientation::Horizontal);
-        listview.connect_activate(glib::clone!(@weak self as obj => move |listview, position| {
-                let model = listview.model().unwrap();
-                let item = model.item(position).and_downcast::<glib::BoxedAnyObject>().unwrap();
-                let result: std::cell::Ref<Latest> = item.borrow();
-                let item_page;
-                if result.latest_type == "Movie" {
-                    item_page = Page::Movie(Box::new(MoviePage::new(result.id.clone(),result.name.clone()).into()));
-                    obj.set(item_page);
-                } else if result.latest_type == "Series" {
-                    item_page = Page::Item(Box::new(ItemPage::new(result.id.clone(),result.id.clone()).into()));
-                    obj.set(item_page);
-                } else {
-                    let toast = adw::Toast::builder()
-                        .title(format!("{} is not supported",result.latest_type))
-                        .timeout(3)
-                        .build();
-                    obj.imp().toast.add_toast(toast);
-                }
-                let window = obj.root();
-                if let Some(window) = window {
-                    if window.is::<Window>() {
-                        let window = window.downcast::<Window>().unwrap();
+        listview.connect_activate(
+            glib::clone!(@weak self as obj => move |listview, position| {
+                    let window = obj.root().and_downcast::<Window>().unwrap();
+                    let model = listview.model().unwrap();
+                    let item = model.item(position).and_downcast::<glib::BoxedAnyObject>().unwrap();
+                    let result: std::cell::Ref<Latest> = item.borrow();
+                    if result.latest_type == "Movie" {
+                        let item_page = MoviePage::new(result.id.clone(),result.name.clone());
+                        window.imp().homeview.push(&item_page);
                         window.set_title(&result.name);
+                        window.change_pop_visibility();
+                        env::set_var("HOME_TITLE", &result.name)
+                    } else if result.latest_type == "Series" {
+                        let item_page = ItemPage::new(result.id.clone(),result.id.clone());
+                        window.imp().homeview.push(&item_page);
+                        window.set_title(&result.name);
+                        window.change_pop_visibility();
+                        env::set_var("HOME_TITLE", &result.name)
+                    } else {
+                        let toast = adw::Toast::builder()
+                            .title(format!("{} is not supported",result.latest_type))
+                            .timeout(3)
+                            .build();
+                        obj.imp().toast.add_toast(toast);
                     }
-                }
-        }));
+            }),
+        );
         listview
     }
 }

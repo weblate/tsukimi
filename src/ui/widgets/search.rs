@@ -1,8 +1,5 @@
 use glib::Object;
-use gtk::subclass::prelude::*;
 use gtk::{gio, glib};
-
-use self::imp::Page;
 
 mod imp {
 
@@ -14,11 +11,6 @@ mod imp {
     use crate::ui::widgets::item::ItemPage;
     use crate::ui::widgets::movie::MoviePage;
     use crate::ui::widgets::window::Window;
-
-    pub enum Page {
-        Movie(Box<gtk::Widget>),
-        Item(Box<gtk::Widget>),
-    }
 
     // Object holding the state
     #[derive(CompositeTemplate, Default)]
@@ -147,25 +139,24 @@ mod imp {
             self.searchgrid.set_model(Some(&self.selection));
             self.searchgrid.set_min_columns(4);
             self.searchgrid.set_max_columns(4);
-            self.searchgrid.connect_activate(glib::clone!(@weak obj => move |gridview, position| {
-                let model = gridview.model().unwrap();
-                let item = model.item(position).and_downcast::<glib::BoxedAnyObject>().unwrap();
-                let result: std::cell::Ref<crate::ui::network::SearchResult> = item.borrow();
-                let item_page;
-                if result.result_type == "Movie" {
-                    item_page = Page::Movie(Box::new(MoviePage::new(result.id.clone(),result.name.clone()).into()));
-                } else {
-                    item_page = Page::Item(Box::new(ItemPage::new(result.id.clone(),result.id.clone()).into()));
-                }
-                obj.set(item_page);
-                let window = obj.root();
-                if let Some(window) = window {
-                    if window.is::<Window>() {
-                        let window = window.downcast::<Window>().unwrap();
-                        window.set_title(&result.name);
+            self.searchgrid
+                .connect_activate(glib::clone!(@weak obj => move |gridview, position| {
+                    let model = gridview.model().unwrap();
+                    let item = model.item(position).and_downcast::<glib::BoxedAnyObject>().unwrap();
+                    let result: std::cell::Ref<crate::ui::network::SearchResult> = item.borrow();
+                    let window = obj.root().and_downcast::<Window>().unwrap();
+                    if result.result_type == "Movie" {
+                        let item_page = MoviePage::new(result.id.clone(),result.name.clone());
+                        window.imp().searchview.push(&item_page);
+                        window.change_pop_visibility();
+                    } else {
+                        let item_page = ItemPage::new(result.id.clone(),result.id.clone());
+                        window.imp().searchview.push(&item_page);
+                        window.change_pop_visibility();
                     }
-                }
-            }));
+                    window.set_title(&result.name);
+                    std::env::set_var("SEARCH_TITLE", &result.name)
+                }));
         }
     }
 
@@ -197,14 +188,5 @@ impl Default for SearchPage {
 impl SearchPage {
     pub fn new() -> Self {
         Object::builder().build()
-    }
-
-    fn set(&self, page: crate::ui::widgets::search::imp::Page) {
-        let imp = imp::SearchPage::from_obj(self);
-        let widget = match page {
-            Page::Movie(widget) => widget,
-            Page::Item(widget) => widget,
-        };
-        imp.searchscrolled.set_child(Some(&*widget));
     }
 }
