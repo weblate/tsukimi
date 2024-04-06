@@ -1,9 +1,9 @@
+use crate::config::proxy::ReqClient;
 use crate::config::{self, get_device_name};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Error;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::env;
 use std::fs::{self, write};
 use std::path::PathBuf;
@@ -97,12 +97,10 @@ pub async fn login(
         .unwrap()
         .join("config")
         .join("tsukimi.toml");
-    if path.exists() {
-        write(path, &data).unwrap();
-    } else {
+    if !path.exists() {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
-        write(path, &data).unwrap();
     }
+    write(path, &data).unwrap();
 
     Ok(())
 }
@@ -129,7 +127,7 @@ pub(crate) async fn search(searchinfo: String) -> Result<Vec<SearchResult>, Erro
     };
     let server_info = config::set_config();
 
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Users/{}/Items",
         server_info.domain, server_info.port, server_info.user_id
@@ -188,7 +186,7 @@ pub struct SeriesInfo {
 
 pub async fn get_series_info(id: String) -> Result<Vec<SeriesInfo>, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Shows/{}/Episodes",
         server_info.domain, server_info.port, id
@@ -310,7 +308,7 @@ pub struct Urls {
 
 pub async fn get_item_overview(id: String) -> Result<Item, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Users/{}/Items/{}",
         server_info.domain, server_info.port, server_info.user_id, id
@@ -335,37 +333,37 @@ pub async fn get_item_overview(id: String) -> Result<Item, Error> {
     Ok(item)
 }
 
-// pub async fn markwatched(id: String, sourceid: String) -> Result<String, Error> {
-//     let server_info = config::set_config();
-//     let client = reqwest::Client::new();
-//     let url = format!(
-//         "{}:{}/emby/Users/{}/PlayingItems/{}",
-//         server_info.domain, server_info.port, server_info.user_id, id
-//     );
-//     println!("{}", url);
-//     let params = [
-//         ("X-Emby-Client", "Tsukimi"),
-//         ("X-Emby-Device-Name", &get_device_name()),
-//         ("X-Emby-Device-Id", &env::var("UUID").unwrap()),
-//         ("X-Emby-Client-Version", "0.3.0"),
-//         ("X-Emby-Token", &server_info.access_token),
-//         ("X-Emby-Language", "zh-cn"),
-//         ("reqformat", "json"),
-//     ];
-//     let inplay = json!({
-//         "UserId": &server_info.user_id,
-//         "Id": &id,
-//         "MediaSourceId": &sourceid,
-//     });
-//     let response = client
-//         .post(&url)
-//         .query(&params)
-//         .json(&inplay)
-//         .send()
-//         .await?;
-//     let text = response.text().await?;
-//     Ok(text)
-// }
+pub async fn _markwatched(id: String, sourceid: String) -> Result<String, Error> {
+    let server_info = config::set_config();
+    let client = ReqClient::new();
+    let url = format!(
+        "{}:{}/emby/Users/{}/PlayingItems/{}",
+        server_info.domain, server_info.port, server_info.user_id, id
+    );
+    println!("{}", url);
+    let params = [
+        ("X-Emby-Client", "Tsukimi"),
+        ("X-Emby-Device-Name", &get_device_name()),
+        ("X-Emby-Device-Id", &env::var("UUID").unwrap()),
+        ("X-Emby-Client-Version", "0.3.0"),
+        ("X-Emby-Token", &server_info.access_token),
+        ("X-Emby-Language", "zh-cn"),
+        ("reqformat", "json"),
+    ];
+    let inplay = json!({
+        "UserId": &server_info.user_id,
+        "Id": &id,
+        "MediaSourceId": &sourceid,
+    });
+    let response = client
+        .post(&url)
+        .query(&params)
+        .json(&inplay)
+        .send()
+        .await?;
+    let text = response.text().await?;
+    Ok(text)
+}
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Resume {
@@ -408,7 +406,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
     let mut model = ResumeModel { resume: Vec::new() };
     let server_info = config::set_config();
 
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Users/{}/Items/Resume",
         server_info.domain, server_info.port, server_info.user_id
@@ -445,7 +443,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
 pub async fn get_image(id: String) -> Result<String, Error> {
     let server_info = config::set_config();
 
-    let result = ReqClient::add_proxy()
+    let result = ReqClient::new()
         .get(&format!(
             "{}:{}/emby/Items/{}/Images/Primary?maxHeight=400",
             server_info.domain, server_info.port, id
@@ -484,7 +482,7 @@ pub async fn get_image(id: String) -> Result<String, Error> {
 pub async fn get_thumbimage(id: String) -> Result<String, Error> {
     let server_info = config::set_config();
 
-    let result = ReqClient::add_proxy()
+    let result = ReqClient::new()
         .get(&format!(
             "{}:{}/emby/Items/{}/Images/Thumb",
             server_info.domain, server_info.port, id
@@ -523,7 +521,7 @@ pub async fn get_thumbimage(id: String) -> Result<String, Error> {
 pub async fn get_backdropimage(id: String) -> Result<String, Error> {
     let server_info = config::set_config();
 
-    let result = ReqClient::add_proxy()
+    let result = ReqClient::new()
         .get(&format!(
             "{}:{}/emby/Items/{}/Images/Backdrop",
             server_info.domain, server_info.port, id
@@ -562,7 +560,7 @@ pub async fn get_backdropimage(id: String) -> Result<String, Error> {
 pub async fn get_logoimage(id: String) -> Result<String, Error> {
     let server_info = config::set_config();
 
-    let result = ReqClient::add_proxy()
+    let result = ReqClient::new()
         .get(&format!(
             "{}:{}/emby/Items/{}/Images/Logo",
             server_info.domain, server_info.port, id
@@ -600,7 +598,7 @@ pub async fn get_logoimage(id: String) -> Result<String, Error> {
 
 pub async fn get_mediainfo(id: String) -> Result<Media, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Users/{}/Items/{}",
         server_info.domain, server_info.port, server_info.user_id, id
@@ -626,7 +624,7 @@ pub async fn get_mediainfo(id: String) -> Result<Media, Error> {
 
 pub async fn get_playbackinfo(id: String) -> Result<Media, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Items/{}/PlaybackInfo",
         server_info.domain, server_info.port, id
@@ -666,7 +664,7 @@ pub async fn get_playbackinfo(id: String) -> Result<Media, Error> {
 
 pub async fn get_sub(id: String, sourceid: String) -> Result<Media, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Items/{}/PlaybackInfo",
         server_info.domain, server_info.port, id
@@ -718,7 +716,7 @@ pub struct View {
 
 pub async fn get_library() -> Result<Vec<View>, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Users/{}/Views",
         server_info.domain, server_info.port, server_info.user_id
@@ -762,7 +760,7 @@ pub async fn get_latest(
 ) -> Result<Vec<Latest>, Error> {
     let _ = mutex.lock().await;
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Users/{}/Items/Latest",
         server_info.domain, server_info.port, server_info.user_id
@@ -801,7 +799,7 @@ pub async fn get_list(
 ) -> Result<List, Error> {
     let _ = mutex.lock().await;
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Users/{}/Items",
         server_info.domain, server_info.port, server_info.user_id
@@ -866,7 +864,7 @@ pub struct Back {
 pub async fn positionback(back: Back) {
     let tick = back.tick.to_string();
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Sessions/Playing/Progress",
         server_info.domain, server_info.port
@@ -895,7 +893,7 @@ pub async fn positionback(back: Back) {
 pub async fn positionstop(back: Back) {
     let tick = back.tick.to_string();
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Sessions/Playing/Stopped",
         server_info.domain, server_info.port
@@ -924,7 +922,7 @@ pub async fn positionstop(back: Back) {
 pub async fn playstart(back: Back) {
     let tick = back.tick.to_string();
     let server_info = config::set_config();
-    let client = ReqClient::add_proxy();
+    let client = ReqClient::new();
     let url = format!(
         "{}:{}/emby/Sessions/Playing",
         server_info.domain, server_info.port
@@ -953,35 +951,4 @@ pub async fn playstart(back: Back) {
 fn get_cache_dir() -> PathBuf {
     let path = env::current_dir().unwrap().parent().unwrap().join("cache");
     return path;
-}
-
-pub struct ReqClient;
-
-use crate::APP_ID;
-use gtk::prelude::SettingsExt;
-
-impl ReqClient {
-    pub fn new() -> reqwest::Client {
-        return reqwest::Client::new();
-    }
-
-    pub fn add_proxy() -> reqwest::Client {
-        let settings = gtk::gio::Settings::new(APP_ID);
-
-        let proxy_setting = settings.string("http-proxy");
-        // let proxy_setting = env::var("EMBY_PROXY").unwrap();
-        let proxy_str = proxy_setting.as_str();
-        if proxy_str.is_empty() {
-            // println!("no proxy set");
-            return reqwest::Client::new();
-        } else {
-            let proxy = reqwest::Proxy::all(proxy_str).expect("failed to find proxy");
-
-            // println!("now using proxy: {}", proxy_str);
-            return reqwest::Client::builder()
-                .proxy(proxy)
-                .build()
-                .expect("failed to initialize client");
-        }
-    }
 }

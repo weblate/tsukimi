@@ -3,6 +3,7 @@ use std::{env, fs::File, io::Read};
 use toml;
 use uuid::Uuid;
 
+pub mod proxy;
 pub const VERSION: &str = "0.3.0";
 
 #[derive(Serialize, Debug, Deserialize)]

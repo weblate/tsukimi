@@ -26,7 +26,9 @@ mod imp {
         #[template_child]
         pub forcewindowcontrol: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub httpproxycontrol: TemplateChild<adw::EntryRow>,
+        pub resumecontrol: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub proxyentry: TemplateChild<adw::EntryRow>,
     }
 
     // The central trait for subclassing a GObject
@@ -39,6 +41,12 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+            klass.install_action("win.proxy", None, move |set, _action, _parameter| {
+                set.proxy();
+            });
+            klass.install_action("win.proxyclear", None, move |set, _action, _parameter| {
+                set.proxyclear();
+            });
         }
 
         fn instance_init(obj: &InitializingObject<Self>) {
@@ -56,7 +64,8 @@ mod imp {
             obj.set_spin();
             obj.set_fullscreen();
             obj.set_forcewindow();
-            obj.set_httpproxy();
+            obj.set_resume();
+            obj.set_proxy();
         }
     }
 
@@ -149,14 +158,34 @@ impl SettingsPage {
         );
     }
 
-    pub fn set_httpproxy(&self) {
+    pub fn set_resume(&self) {
         let imp = imp::SettingsPage::from_obj(self);
         let settings = gio::Settings::new(APP_ID);
-        imp.httpproxycontrol
-            .set_text(settings.string("http-proxy").as_str());
-        imp.httpproxycontrol
-            .connect_text_notify(glib::clone!(@weak self as obj => move |entry| {
-                settings.set_string("http-proxy", entry.text().as_str()).unwrap();
+        imp.resumecontrol.set_active(settings.boolean("is-resume"));
+        imp.resumecontrol
+            .connect_active_notify(glib::clone!(@weak self as obj =>move |control| {
+                settings.set_boolean("is-resume", control.is_active()).unwrap();
             }));
+    }
+
+    pub fn proxy(&self) {
+        let imp = imp::SettingsPage::from_obj(self);
+        let settings = gio::Settings::new(APP_ID);
+        settings
+            .set_string("proxy", &imp.proxyentry.text())
+            .unwrap();
+    }
+
+    pub fn set_proxy(&self) {
+        let imp = imp::SettingsPage::from_obj(self);
+        let settings = gio::Settings::new(APP_ID);
+        imp.proxyentry.set_text(&settings.string("proxy"));
+    }
+
+    pub fn proxyclear(&self) {
+        let imp = imp::SettingsPage::from_obj(self);
+        let settings = gio::Settings::new(APP_ID);
+        settings.set_string("proxy", "").unwrap();
+        imp.proxyentry.set_text("");
     }
 }

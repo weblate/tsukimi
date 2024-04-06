@@ -12,7 +12,13 @@ use crate::{
     ui::network::{runtime, Back},
     APP_ID,
 };
-pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: &Back) -> Result<()> {
+pub fn play(
+    url: String,
+    suburl: Option<String>,
+    name: Option<String>,
+    back: &Back,
+    percentage: Option<f64>,
+) -> Result<()> {
     unsafe {
         use libc::setlocale;
         use libc::LC_NUMERIC;
@@ -29,29 +35,35 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: &Ba
         #[cfg(not(target_os = "windows"))]
         init.set_property("input-vo-keyboard", true)?;
         init.set_property("input-default-bindings", true)?;
+
         if let Some(name) = name {
             init.set_property("force-media-title", name)?;
         }
+
         let settings = gtk::gio::Settings::new(APP_ID);
+
         if settings.boolean("is-fullscreen") {
             init.set_property("fullscreen", true)?;
         }
+
         if settings.boolean("is-force-window") {
             init.set_property("force-window", "immediate")?;
         }
 
-        let proxy = settings.string("http-proxy");
-        if settings.string("http-proxy").is_empty() {
-            ()
-        } else {
-            init.set_property("http-proxy", proxy.as_str())?;
+        if settings.boolean("is-resume") {
+            if let Some(percentage) = percentage {
+                init.set_property("start", format!("{}%", percentage as u32))?;
+            }
+        }
+
+        let proxy = settings.string("proxy");
+        if !settings.string("proxy").is_empty() {
+            init.set_property("proxy", proxy.as_str())?;
         }
 
         let config_path = env::var("MPV_CONFIG_DIR").unwrap();
         if env::var("MPV_CONFIG").unwrap() == "true" {
             init.set_property("config-dir", config_path)?;
-        } else {
-            ()
         }
 
         Ok(())
@@ -64,8 +76,11 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: &Ba
     ev_ctx.observe_property("volume", Format::Int64, 0)?;
     ev_ctx.observe_property("time-pos", Format::Double, 0)?;
 
-    let backc = back.clone();
-
+    let mut backc = back.clone();
+    if let Some(percentage) = percentage {
+        backc.tick = percentage * 10000000.0;
+    }
+    std::env::set_var("DURATION", backc.tick.to_string());
     runtime().spawn(async move {
         crate::ui::network::playstart(backc).await;
     });
@@ -83,7 +98,7 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: &Ba
         });
         let mut last_print = Instant::now();
         scope.spawn(move |_| loop {
-            let ev = ev_ctx.wait_event(1000.).unwrap_or(Err(Error::Null));
+            let ev = ev_ctx.wait_event(10000.).unwrap_or(Err(Error::Null));
             match ev {
                 Ok(Event::EndFile(r)) => {
                     if r == 3 {
@@ -116,6 +131,7 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: &Ba
                             if let Ok(duration) = env::var("DURATION") {
                                 let tick = duration.parse::<f64>().unwrap() * 10000000.0;
                                 let mut back = back.clone();
+                                println!("Position: {}", tick);
                                 back.tick = tick;
                                 runtime().spawn(async move {
                                     crate::ui::network::positionback(back).await;

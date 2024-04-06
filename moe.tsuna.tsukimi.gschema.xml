@@ -29,7 +29,11 @@
       <default>true</default>
       <summary>Default switch state</summary>
     </key>
-    <key name="http-proxy" type="s">
+    <key name="is-resume" type="b">
+      <default>true</default>
+      <summary>Default switch state</summary>
+    </key>
+    <key name="proxy" type="s">
       <default>""</default>
       <summary>Default http proxy state</summary>
     </key>

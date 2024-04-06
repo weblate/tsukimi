@@ -86,6 +86,16 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
     vbox.append(&subdropdown);
     let info = info.clone();
     let playbutton = gtk::Button::with_label("Play");
+    let settings = gtk::gio::Settings::new(crate::APP_ID);
+    if settings.boolean("is-resume") {
+        if let Some(userdata) = &info.user_data {
+            if let Some(percentage) = userdata.played_percentage {
+                if percentage > 0. {
+                    playbutton.set_label("Resume");
+                }
+            }
+        }
+    }
     playbutton.connect_clicked(move |button| {
         button.set_label("Playing...");
         button.set_sensitive(false);
@@ -105,7 +115,18 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                         playsessionid: playback_info.play_session_id.clone(),
                         tick: 0.,
                     };
-                    play_event(button.clone(), directurl, None, media.name, back);
+                    if let Some(userdata) = &info.user_data {
+                        play_event(
+                            button.clone(),
+                            directurl,
+                            None,
+                            media.name,
+                            back,
+                            userdata.played_percentage,
+                        );
+                        return;
+                    }
+                    play_event(button.clone(), directurl, None, media.name, back, None);
                     return;
                 }
             }
@@ -128,22 +149,36 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                                             playsessionid: playback_info.play_session_id.clone(),
                                             tick: 0.,
                                         };
+                                        if let Some(userdata) = &info.user_data {
+                                            play_event(
+                                                button.clone(),
+                                                Some(directurl),
+                                                Some(suburl),
+                                                media.name,
+                                                back,
+                                                userdata.played_percentage,
+                                            );
+                                            return;
+                                        }
                                         play_event(
                                             button.clone(),
                                             Some(directurl),
                                             Some(suburl),
                                             media.name,
                                             back,
+                                            None,
                                         );
                                         return;
                                     } else {
                                         // Ask Luke
+                                        let userdata = info.user_data.clone();
                                         set_sub(
                                             info.id.clone(),
                                             media.id.clone(),
                                             nameselected.to_string(),
                                             subselected.to_string(),
                                             button.clone(),
+                                            userdata,
                                         );
                                         return;
                                     }
@@ -154,12 +189,24 @@ pub fn newmediadropsel(playbackinfo: network::Media, info: SeriesInfo) -> gtk::B
                                         playsessionid: playback_info.play_session_id.clone(),
                                         tick: 0.,
                                     };
+                                    if let Some(userdata) = &info.user_data {
+                                        play_event(
+                                            button.clone(),
+                                            Some(directurl),
+                                            None,
+                                            media.name,
+                                            back,
+                                            userdata.played_percentage,
+                                        );
+                                        return;
+                                    }
                                     play_event(
                                         button.clone(),
                                         Some(directurl),
                                         None,
                                         media.name,
                                         back,
+                                        None,
                                     );
                                     return;
                                 }
@@ -182,13 +229,20 @@ pub fn play_event(
     suburl: Option<String>,
     name: String,
     back: Back,
+    percentage: Option<f64>,
 ) {
     let (sender, receiver) = async_channel::bounded(1);
     gtk::gio::spawn_blocking(move || {
         sender
             .send_blocking(false)
             .expect("The channel needs to be open.");
-        match mpv::event::play(directurl.expect("no url"), suburl, Some(name), &back) {
+        match mpv::event::play(
+            directurl.expect("no url"),
+            suburl,
+            Some(name),
+            &back,
+            percentage,
+        ) {
             Ok(_) => {
                 sender
                     .send_blocking(true)
@@ -202,7 +256,12 @@ pub fn play_event(
     glib::spawn_future_local(glib::clone!(@weak button =>async move {
         while let Ok(enable_button) = receiver.recv().await {
             if enable_button {
-                button.set_label("Play");
+                let settings = gtk::gio::Settings::new(crate::APP_ID);
+                if settings.boolean("is-resume") {
+                    button.set_label("Resume");
+                } else {
+                    button.set_label("Play");
+                }
             }
             button.set_sensitive(enable_button);
         }
@@ -215,6 +274,7 @@ pub fn set_sub(
     nameselected: String,
     subselected: String,
     button: gtk::Button,
+    userdata: Option<crate::ui::network::UserData>,
 ) {
     let (sender, receiver) = async_channel::bounded::<Media>(1);
     let idc = id.clone();
@@ -243,12 +303,24 @@ pub fn set_sub(
                                                 playsessionid: media.play_session_id.clone(),
                                                 tick: 0.,
                                             };
+                                            if let Some(userdata) = userdata {
+                                                play_event(
+                                                    button.clone(),
+                                                    Some(directurl),
+                                                    Some(suburl),
+                                                    nameselected,
+                                                    back,
+                                                    userdata.played_percentage,
+                                                );
+                                                return;
+                                            }
                                             play_event(
                                                 button.clone(),
                                                 Some(directurl),
                                                 Some(suburl),
-                                                mediasource.name,
+                                                nameselected,
                                                 back,
+                                                None,
                                             );
                                             return;
                                         }
