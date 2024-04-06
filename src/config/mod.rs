@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 pub const VERSION: &str = "0.3.0";
 
-#[derive(Serialize, Debug, Deserialize, Default)]
+#[derive(Serialize, Debug, Deserialize)]
 pub struct Config {
     pub domain: String,
     pub username: String,
@@ -13,7 +13,6 @@ pub struct Config {
     pub port: String,
     pub user_id: String,
     pub access_token: String,
-    pub proxy: String,
 }
 
 fn generate_uuid() -> String {
@@ -40,31 +39,30 @@ pub fn load_cfg() {
         env::set_var("EMBY_PORT", &config.port);
         env::set_var("EMBY_USER_ID", &config.user_id);
         env::set_var("EMBY_ACCESS_TOKEN", &config.access_token);
-        env::set_var("EMBY_PROXY", &config.proxy);
 
         let uuid = generate_uuid();
         env::set_var("UUID", &uuid);
 
-        let mpv_config_file = env::current_dir().unwrap().parent().unwrap().join("mpv");
-        let mpv_config = if mpv_config_file.exists() {
+        let mpv_config_dir = env::current_dir().unwrap().parent().unwrap().join("mpv");
+        let mpv_config = if mpv_config_dir.join("mpv.conf").exists() {
             "true"
         } else {
             "false"
         };
         env::set_var("MPV_CONFIG", mpv_config);
-        env::set_var("MPV_CONFIG_DIR", mpv_config_file.display().to_string());
+        env::set_var("MPV_CONFIG_DIR", mpv_config_dir.display().to_string());
     } else {
         let uuid = generate_uuid();
         env::set_var("UUID", &uuid);
 
-        let mpv_config_file = env::current_dir().unwrap().parent().unwrap().join("mpv");
-        let mpv_config = if mpv_config_file.exists() {
+        let mpv_config_dir = env::current_dir().unwrap().parent().unwrap().join("mpv");
+        let mpv_config = if mpv_config_dir.join("mpv.conf").exists() {
             "true"
         } else {
             "false"
         };
         env::set_var("MPV_CONFIG", mpv_config);
-        env::set_var("MPV_CONFIG_DIR", mpv_config_file.display().to_string());
+        env::set_var("MPV_CONFIG_DIR", mpv_config_dir.display().to_string());
     };
 }
 
@@ -76,7 +74,6 @@ pub fn set_config() -> Config {
         port: env::var("EMBY_PORT").unwrap(),
         user_id: env::var("EMBY_USER_ID").unwrap(),
         access_token: env::var("EMBY_ACCESS_TOKEN").unwrap(),
-        proxy: env::var("EMBY_PROXY").unwrap(),
     };
     config
 }

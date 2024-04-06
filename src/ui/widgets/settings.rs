@@ -25,6 +25,8 @@ mod imp {
         pub spinrow: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub forcewindowcontrol: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub httpproxycontrol: TemplateChild<adw::EntryRow>,
     }
 
     // The central trait for subclassing a GObject
@@ -54,6 +56,7 @@ mod imp {
             obj.set_spin();
             obj.set_fullscreen();
             obj.set_forcewindow();
+            obj.set_httpproxy();
         }
     }
 
@@ -144,5 +147,16 @@ impl SettingsPage {
                 settings.set_boolean("is-force-window", control.is_active()).unwrap();
             }),
         );
+    }
+
+    pub fn set_httpproxy(&self) {
+        let imp = imp::SettingsPage::from_obj(self);
+        let settings = gio::Settings::new(APP_ID);
+        imp.httpproxycontrol
+            .set_text(settings.string("http-proxy").as_str());
+        imp.httpproxycontrol
+            .connect_text_notify(glib::clone!(@weak self as obj => move |entry| {
+                settings.set_string("http-proxy", entry.text().as_str()).unwrap();
+            }));
     }
 }

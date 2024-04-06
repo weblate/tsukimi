@@ -40,22 +40,24 @@ pub fn play(url: String, suburl: Option<String>, name: Option<String>, back: &Ba
             init.set_property("force-window", "immediate")?;
         }
 
+        let proxy = settings.string("http-proxy");
+        if settings.string("http-proxy").is_empty() {
+            ()
+        } else {
+            init.set_property("http-proxy", proxy.as_str())?;
+        }
+
         let config_path = env::var("MPV_CONFIG_DIR").unwrap();
         if env::var("MPV_CONFIG").unwrap() == "true" {
             init.set_property("config-dir", config_path)?;
         } else {
             ()
         }
-        if env::var("EMBY_PROXY").unwrap().is_empty() {
-            ()
-        } else {
-            init.set_property("http-proxy", env::var("EMBY_PROXY").unwrap())?;
-        }
 
         Ok(())
     })
     .unwrap();
-    mpv.set_property("volume", 75)?;
+    mpv.set_property("volume", 85)?;
 
     let mut ev_ctx = mpv.create_event_context();
     ev_ctx.disable_deprecated_events()?;

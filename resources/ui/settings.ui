@@ -57,6 +57,11 @@
                             <property name="title" translatable="yes">Show Playing Window Immediately</property>
                           </object>
                         </child>
+                        <child>
+                          <object class="AdwEntryRow" id="httpproxycontrol">
+                            <property name="title" translatable="yes">HTTP Proxy</property>
+                          </object>
+                        </child>
                         <style>
                           <class name="boxed-list" />
                         </style>

@@ -12,7 +12,7 @@ use std::time::Duration;
 use tokio::runtime::{self, Runtime};
 use toml::to_string;
 
-#[derive(Serialize, Debug, Deserialize, Default)]
+#[derive(Serialize, Debug, Deserialize)]
 pub struct Config {
     pub domain: String,
     pub username: String,
@@ -20,7 +20,6 @@ pub struct Config {
     pub port: String,
     pub user_id: String,
     pub access_token: String,
-    pub proxy: String,
 }
 
 pub fn runtime() -> &'static Runtime {
@@ -90,7 +89,6 @@ pub async fn login(
         port,
         user_id: user_id.to_string(),
         access_token: access_token.to_string(),
-        ..Default::default()
     };
     let data = to_string(&config).unwrap();
     let path = env::current_dir()
@@ -427,7 +425,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
             ("EnableImageTypes", "Primary,Backdrop,Thumb"),
             ("ImageTypeLimit", "1"),
             ("MediaTypes", "Video"),
-            ("Limit", "16"),
+            ("Limit", "18"),
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
@@ -774,7 +772,7 @@ pub async fn get_latest(
         let device_name = &get_device_name();
         let device_id = &env::var("UUID").unwrap();
         let params = Box::new([
-            ("Limit", "16"),
+            ("Limit", "18"),
             (
                 "Fields",
                 "BasicSyncInfo,CanDelete,PrimaryImageAspectRatio,ProductionYear",
@@ -923,35 +921,6 @@ pub async fn positionstop(back: Back) {
         .unwrap();
 }
 
-fn get_cache_dir() -> PathBuf {
-    let path = env::current_dir().unwrap().parent().unwrap().join("cache");
-    return path;
-}
-
-pub struct ReqClient;
-
-impl ReqClient {
-    pub fn new() -> reqwest::Client {
-        return reqwest::Client::new();
-    }
-
-    pub fn add_proxy() -> reqwest::Client {
-        let proxy_setting = env::var("EMBY_PROXY").unwrap();
-        if proxy_setting.is_empty() {
-            // println!("no proxy set");
-            return reqwest::Client::new();
-        } else {
-            let proxy = reqwest::Proxy::all(&proxy_setting).expect("failed to find proxy");
-
-            // println!("now using proxy: {}", proxy_setting);
-            return reqwest::Client::builder()
-                .proxy(proxy)
-                .build()
-                .expect("failed to initialize client");
-        }
-    }
-}
-
 pub async fn playstart(back: Back) {
     let tick = back.tick.to_string();
     let server_info = config::set_config();
@@ -961,14 +930,16 @@ pub async fn playstart(back: Back) {
         server_info.domain, server_info.port
     );
 
-    let params = [
+    let device_name = &get_device_name();
+    let device_id = &env::var("UUID").unwrap();
+    let params = Box::new([
         ("X-Emby-Client-Version", "0.3.0"),
-        ("X-Emby-Device-Name", &get_device_name()),
-        ("X-Emby-Device-Id", &env::var("UUID").unwrap()),
+        ("X-Emby-Device-Name", device_name),
+        ("X-Emby-Device-Id", device_id),
         ("X-Emby-Token", &server_info.access_token),
         ("X-Emby-Language", "zh-cn"),
         ("reqformat", "json"),
-    ];
+    ]);
     let profile = serde_json::json!({"VolumeLevel":100,"IsMuted":false,"IsPaused":false,"RepeatMode":"RepeatNone","SubtitleOffset":0,"PlaybackRate":1,"MaxStreamingBitrate":4000000,"PositionTicks":tick,"PlaybackStartTimeTicks":0,"SubtitleStreamIndex":1,"AudioStreamIndex":1,"BufferedRanges":[],"PlayMethod":"DirectStream","PlaySessionId":back.playsessionid,"MediaSourceId":back.mediasourceid,"CanSeek":true,"ItemId":back.id,"PlaylistIndex":0,"PlaylistLength":23,"NextMediaType":"Video"});
     client
         .post(&url)
@@ -977,4 +948,40 @@ pub async fn playstart(back: Back) {
         .send()
         .await
         .unwrap();
+}
+
+fn get_cache_dir() -> PathBuf {
+    let path = env::current_dir().unwrap().parent().unwrap().join("cache");
+    return path;
+}
+
+pub struct ReqClient;
+
+use crate::APP_ID;
+use gtk::prelude::SettingsExt;
+
+impl ReqClient {
+    pub fn new() -> reqwest::Client {
+        return reqwest::Client::new();
+    }
+
+    pub fn add_proxy() -> reqwest::Client {
+        let settings = gtk::gio::Settings::new(APP_ID);
+
+        let proxy_setting = settings.string("http-proxy");
+        // let proxy_setting = env::var("EMBY_PROXY").unwrap();
+        let proxy_str = proxy_setting.as_str();
+        if proxy_str.is_empty() {
+            // println!("no proxy set");
+            return reqwest::Client::new();
+        } else {
+            let proxy = reqwest::Proxy::all(proxy_str).expect("failed to find proxy");
+
+            // println!("now using proxy: {}", proxy_str);
+            return reqwest::Client::builder()
+                .proxy(proxy)
+                .build()
+                .expect("failed to initialize client");
+        }
+    }
 }
