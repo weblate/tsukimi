@@ -5,7 +5,6 @@ edition = "2021"
 description = "A simple Emby Client with MPV written by GTK4-RS"
 license = "MIT"
 
-
 [dependencies]
 gtk = { version = "0.8", package = "gtk4", features = ["v4_12"] }
 serde = { version = "1.0.197", features = ["derive"] }
@@ -26,6 +25,7 @@ uuid = { version = "1.8.0", features = ["v4"] }
 toml = "0.8.12"
 
 [build-dependencies]
+embed-resource = "2.4.2"
 glib-build-tools = "0.19.0"
 
 [features]
