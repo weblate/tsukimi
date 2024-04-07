@@ -85,6 +85,8 @@ placessidebar {
 }
 .sidebar-pane {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  background-color: rgba(245, 245, 245, 0);
+  color: rgba(1, 1, 1, 0.8);
 }
 
 @define-color destructive_color #c01c28;

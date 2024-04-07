@@ -120,10 +120,11 @@ impl SettingsPage {
         let settings = gio::Settings::new(APP_ID);
         imp.backcontrol
             .set_active(settings.boolean("is-progress-enabled"));
-        imp.backcontrol
-            .connect_active_notify(glib::clone!(@weak self as obj =>move |control| {
-                settings.set_boolean("is-progress-enabled", control.is_active()).unwrap();
-            }));
+        imp.backcontrol.connect_active_notify(move |control| {
+            settings
+                .set_boolean("is-progress-enabled", control.is_active())
+                .unwrap();
+        });
     }
 
     pub fn set_spin(&self) {
@@ -131,10 +132,11 @@ impl SettingsPage {
         let settings = gio::Settings::new(APP_ID);
         imp.spinrow
             .set_value(settings.int("background-height").into());
-        imp.spinrow
-            .connect_value_notify(glib::clone!(@weak self as obj =>move |control| {
-                settings.set_int("background-height", control.value() as i32).unwrap();
-            }));
+        imp.spinrow.connect_value_notify(move |control| {
+            settings
+                .set_int("background-height", control.value() as i32)
+                .unwrap();
+        });
     }
 
     pub fn set_fullscreen(&self) {
@@ -142,11 +144,12 @@ impl SettingsPage {
         let settings = gio::Settings::new(APP_ID);
         imp.autofullscreencontrol
             .set_active(settings.boolean("is-fullscreen"));
-        imp.autofullscreencontrol.connect_active_notify(
-            glib::clone!(@weak self as obj =>move |control| {
-                settings.set_boolean("is-fullscreen", control.is_active()).unwrap();
-            }),
-        );
+        imp.autofullscreencontrol
+            .connect_active_notify(move |control| {
+                settings
+                    .set_boolean("is-fullscreen", control.is_active())
+                    .unwrap();
+            });
     }
 
     pub fn set_forcewindow(&self) {
@@ -154,21 +157,23 @@ impl SettingsPage {
         let settings = gio::Settings::new(APP_ID);
         imp.forcewindowcontrol
             .set_active(settings.boolean("is-force-window"));
-        imp.forcewindowcontrol.connect_active_notify(
-            glib::clone!(@weak self as obj =>move |control| {
-                settings.set_boolean("is-force-window", control.is_active()).unwrap();
-            }),
-        );
+        imp.forcewindowcontrol
+            .connect_active_notify(move |control| {
+                settings
+                    .set_boolean("is-force-window", control.is_active())
+                    .unwrap();
+            });
     }
 
     pub fn set_resume(&self) {
         let imp = imp::SettingsPage::from_obj(self);
         let settings = gio::Settings::new(APP_ID);
         imp.resumecontrol.set_active(settings.boolean("is-resume"));
-        imp.resumecontrol
-            .connect_active_notify(glib::clone!(@weak self as obj =>move |control| {
-                settings.set_boolean("is-resume", control.is_active()).unwrap();
-            }));
+        imp.resumecontrol.connect_active_notify(move |control| {
+            settings
+                .set_boolean("is-resume", control.is_active())
+                .unwrap();
+        });
     }
 
     pub fn proxy(&self) {
