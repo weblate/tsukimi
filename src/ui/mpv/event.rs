@@ -77,10 +77,7 @@ pub fn play(
     ev_ctx.observe_property("time-pos", Format::Double, 0)?;
 
     let backc = back.clone();
-
-    let duration = backc.tick / 10000000;
-    std::env::set_var("DURATION", duration.to_string());
-
+    std::env::set_var("DURATION", (&backc.tick / 10000000).to_string());
     runtime().spawn(async move {
         crate::ui::network::playstart(backc).await;
     });
@@ -92,7 +89,7 @@ pub fn play(
             thread::sleep(Duration::from_secs(1));
             if let Some(suburl) = suburl {
                 let suburl = format!("{}:{}/emby{}", server_info.domain, server_info.port, suburl);
-                println!("Loading subtitle: {}", suburl);
+                println!("Loading subtitle");
                 mpv.subtitle_add_select(&suburl, None, None).unwrap();
             }
         });
@@ -104,7 +101,7 @@ pub fn play(
                     if r == 3 {
                         if let Ok(duration) = env::var("DURATION") {
                             println!("Duration: {}", duration);
-                            let tick = duration.parse::<f64>().unwrap() * 10000000.0;
+                            let tick = duration.parse::<f64>().unwrap() as u64 * 10000000;
                             let mut back = back.clone();
                             back.tick = tick as u64;
                             runtime().spawn(async move {
@@ -130,7 +127,7 @@ pub fn play(
                             || settings.boolean("is-progress-enabled")
                         {
                             if let Ok(duration) = env::var("DURATION") {
-                                let tick = duration.parse::<f64>().unwrap() * 10000000.0;
+                                let tick = duration.parse::<f64>().unwrap() as u64 * 10000000;
                                 let mut back = back.clone();
                                 // println!("Position: {}", tick);
                                 back.tick = tick as u64;

@@ -1,5 +1,5 @@
 use crate::config::proxy::ReqClient;
-use crate::config::{self, get_device_name};
+use crate::config::{self, get_device_name, APP_VERSION};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Error;
 use serde::{Deserialize, Serialize};
@@ -54,7 +54,10 @@ pub async fn login(
         "X-Emby-Device-Id",
         HeaderValue::from_str(&env::var("UUID").unwrap()).unwrap(),
     );
-    headers.insert("X-Emby-Client-Version", HeaderValue::from_static("0.3.0"));
+    headers.insert(
+        "X-Emby-Client-Version",
+        HeaderValue::from_static(APP_VERSION),
+    );
     headers.insert("X-Emby-Language", HeaderValue::from_static("zh-cn"));
 
     let body = json!({
@@ -345,7 +348,7 @@ pub async fn _markwatched(id: String, sourceid: String) -> Result<String, Error>
         ("X-Emby-Client", "Tsukimi"),
         ("X-Emby-Device-Name", &get_device_name()),
         ("X-Emby-Device-Id", &env::var("UUID").unwrap()),
-        ("X-Emby-Client-Version", "0.3.0"),
+        ("X-Emby-Client-Version", APP_VERSION),
         ("X-Emby-Token", &server_info.access_token),
         ("X-Emby-Language", "zh-cn"),
         ("reqformat", "json"),
@@ -862,7 +865,6 @@ pub struct Back {
 }
 
 pub async fn positionback(back: Back) {
-    let tick = back.tick;
     let server_info = config::set_config();
     let client = ReqClient::new();
     let url = format!(
@@ -880,7 +882,7 @@ pub async fn positionback(back: Back) {
         ("X-Emby-Language", "zh-cn"),
         ("reqformat", "json"),
     ]);
-    let profile = serde_json::json!({"VolumeLevel":100,"IsMuted":false,"IsPaused":false,"RepeatMode":"RepeatNone","SubtitleOffset":0,"PlaybackRate":1,"MaxStreamingBitrate":4000000,"PositionTicks":tick,"PlaybackStartTimeTicks":0,"SubtitleStreamIndex":1,"AudioStreamIndex":1,"BufferedRanges":[],"PlayMethod":"DirectStream","PlaySessionId":back.playsessionid,"MediaSourceId":back.mediasourceid,"CanSeek":true,"ItemId":back.id,"PlaylistIndex":0,"PlaylistLength":23,"NextMediaType":"Video"});
+    let profile = serde_json::json!({"VolumeLevel":100,"IsMuted":false,"IsPaused":false,"RepeatMode":"RepeatNone","SubtitleOffset":0,"PlaybackRate":1,"MaxStreamingBitrate":4000000,"PositionTicks":back.tick,"PlaybackStartTimeTicks":0,"SubtitleStreamIndex":1,"AudioStreamIndex":1,"BufferedRanges":[],"PlayMethod":"DirectStream","PlaySessionId":back.playsessionid,"MediaSourceId":back.mediasourceid,"CanSeek":true,"ItemId":back.id,"PlaylistIndex":0,"PlaylistLength":23,"NextMediaType":"Video"});
     client
         .post(&url)
         .query(&params)
@@ -891,7 +893,6 @@ pub async fn positionback(back: Back) {
 }
 
 pub async fn positionstop(back: Back) {
-    let tick = back.tick;
     let server_info = config::set_config();
     let client = ReqClient::new();
     let url = format!(
@@ -909,7 +910,7 @@ pub async fn positionstop(back: Back) {
         ("X-Emby-Language", "zh-cn"),
         ("reqformat", "json"),
     ]);
-    let profile = serde_json::json!({"VolumeLevel":100,"IsMuted":false,"IsPaused":false,"RepeatMode":"RepeatNone","SubtitleOffset":0,"PlaybackRate":1,"MaxStreamingBitrate":4000000,"PositionTicks":tick,"PlaybackStartTimeTicks":0,"SubtitleStreamIndex":1,"AudioStreamIndex":1,"BufferedRanges":[],"PlayMethod":"DirectStream","PlaySessionId":back.playsessionid,"MediaSourceId":back.mediasourceid,"CanSeek":true,"ItemId":back.id,"PlaylistIndex":0,"PlaylistLength":23,"NextMediaType":"Video"});
+    let profile = serde_json::json!({"VolumeLevel":100,"IsMuted":false,"IsPaused":false,"RepeatMode":"RepeatNone","SubtitleOffset":0,"PlaybackRate":1,"MaxStreamingBitrate":4000000,"PositionTicks":back.tick,"PlaybackStartTimeTicks":0,"SubtitleStreamIndex":1,"AudioStreamIndex":1,"BufferedRanges":[],"PlayMethod":"DirectStream","PlaySessionId":back.playsessionid,"MediaSourceId":back.mediasourceid,"CanSeek":true,"ItemId":back.id,"PlaylistIndex":0,"PlaylistLength":23,"NextMediaType":"Video"});
     client
         .post(&url)
         .query(&params)
@@ -920,7 +921,6 @@ pub async fn positionstop(back: Back) {
 }
 
 pub async fn playstart(back: Back) {
-    let tick = back.tick;
     let server_info = config::set_config();
     let client = ReqClient::new();
     let url = format!(
@@ -938,7 +938,7 @@ pub async fn playstart(back: Back) {
         ("X-Emby-Language", "zh-cn"),
         ("reqformat", "json"),
     ]);
-    let profile = serde_json::json!({"VolumeLevel":100,"IsMuted":false,"IsPaused":false,"RepeatMode":"RepeatNone","SubtitleOffset":0,"PlaybackRate":1,"MaxStreamingBitrate":4000000,"PositionTicks":tick,"PlaybackStartTimeTicks":0,"SubtitleStreamIndex":1,"AudioStreamIndex":1,"BufferedRanges":[],"PlayMethod":"DirectStream","PlaySessionId":back.playsessionid,"MediaSourceId":back.mediasourceid,"CanSeek":true,"ItemId":back.id,"PlaylistIndex":0,"PlaylistLength":23,"NextMediaType":"Video"});
+    let profile = serde_json::json!({"VolumeLevel":100,"IsMuted":false,"IsPaused":false,"RepeatMode":"RepeatNone","SubtitleOffset":0,"PlaybackRate":1,"MaxStreamingBitrate":4000000,"PositionTicks":back.tick,"PlaybackStartTimeTicks":0,"SubtitleStreamIndex":1,"AudioStreamIndex":1,"BufferedRanges":[],"PlayMethod":"DirectStream","PlaySessionId":back.playsessionid,"MediaSourceId":back.mediasourceid,"CanSeek":true,"ItemId":back.id,"PlaylistIndex":0,"PlaylistLength":23,"NextMediaType":"Video"});
     client
         .post(&url)
         .query(&params)
