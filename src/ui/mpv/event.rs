@@ -95,7 +95,7 @@ pub fn play(
         });
         let mut last_print = Instant::now();
         scope.spawn(move |_| loop {
-            let ev = ev_ctx.wait_event(10000.).unwrap_or(Err(Error::Null));
+            let ev = ev_ctx.wait_event(2000.).unwrap_or(Err(Error::Null));
             match ev {
                 Ok(Event::EndFile(r)) => {
                     if r == 3 {
@@ -118,23 +118,31 @@ pub fn play(
                     change: PropertyData::Double(mpv_node),
                     ..
                 }) => {
-                    if last_print.elapsed() >= Duration::from_secs(10) {
-                        std::env::set_var("DURATION", mpv_node.to_string());
-
+                    std::env::set_var("DURATION", mpv_node.to_string());
+                    let settings = gtk::gio::Settings::new(APP_ID);
+                    if last_print.elapsed() >= Duration::from_secs(10)
+                        && settings.boolean("is-progress-enabled")
+                    {
                         last_print = Instant::now();
-                        let settings = gtk::gio::Settings::new(APP_ID);
-                        if last_print.elapsed() >= Duration::from_secs(300)
-                            || settings.boolean("is-progress-enabled")
-                        {
-                            if let Ok(duration) = env::var("DURATION") {
-                                let tick = duration.parse::<f64>().unwrap() as u64 * 10000000;
-                                let mut back = back.clone();
-                                // println!("Position: {}", tick);
-                                back.tick = tick as u64;
-                                runtime().spawn(async move {
-                                    crate::ui::network::positionback(back).await;
-                                });
-                            }
+                        if let Ok(duration) = env::var("DURATION") {
+                            let tick = duration.parse::<f64>().unwrap() as u64 * 10000000;
+                            let mut back = back.clone();
+                            // println!("Position: {}", tick);
+                            back.tick = tick as u64;
+                            runtime().spawn(async move {
+                                crate::ui::network::positionback(back).await;
+                            });
+                        }
+                    } else if last_print.elapsed() >= Duration::from_secs(30) {
+                        last_print = Instant::now();
+                        if let Ok(duration) = env::var("DURATION") {
+                            let tick = duration.parse::<f64>().unwrap() as u64 * 10000000;
+                            let mut back = back.clone();
+                            // println!("Position: {}", tick);
+                            back.tick = tick as u64;
+                            runtime().spawn(async move {
+                                crate::ui::network::positionback(back).await;
+                            });
                         }
                     }
                 }
