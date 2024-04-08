@@ -27,7 +27,13 @@ pub fn play(
 
     let server_info = set_config();
     let url = format!("{}:{}/emby{}", server_info.domain, server_info.port, url);
-
+    let settings = gtk::gio::Settings::new(APP_ID);
+    let interval = if settings.boolean("is-progress-enabled") {
+        Duration::from_secs(10)
+    } else {
+        Duration::from_secs(300)
+    };
+    let mut duration: u64 = back.tick;
     // Create an `Mpv` and set some properties.
     let mpv = Mpv::with_initializer(|init| {
         init.set_property("osc", true)?;
@@ -39,8 +45,6 @@ pub fn play(
         if let Some(name) = name {
             init.set_property("force-media-title", name)?;
         }
-
-        let settings = gtk::gio::Settings::new(APP_ID);
 
         if settings.boolean("is-fullscreen") {
             init.set_property("fullscreen", true)?;
@@ -77,7 +81,6 @@ pub fn play(
     ev_ctx.observe_property("time-pos", Format::Double, 0)?;
 
     let backc = back.clone();
-    std::env::set_var("DURATION", (&backc.tick / 10000000).to_string());
     runtime().spawn(async move {
         crate::ui::network::playstart(backc).await;
     });
@@ -99,15 +102,11 @@ pub fn play(
             match ev {
                 Ok(Event::EndFile(r)) => {
                     if r == 3 {
-                        if let Ok(duration) = env::var("DURATION") {
-                            println!("Duration: {}", duration);
-                            let tick = duration.parse::<f64>().unwrap() as u64 * 10000000;
-                            let mut back = back.clone();
-                            back.tick = tick as u64;
-                            runtime().spawn(async move {
-                                crate::ui::network::positionstop(back).await;
-                            });
-                        }
+                        let mut back = back.clone();
+                        back.tick = duration;
+                        runtime().spawn(async move {
+                            crate::ui::network::positionstop(back).await;
+                        });
                     }
                     println!("Exiting! Reason: {:?}", r);
                     break;
@@ -118,32 +117,14 @@ pub fn play(
                     change: PropertyData::Double(mpv_node),
                     ..
                 }) => {
-                    std::env::set_var("DURATION", mpv_node.to_string());
-                    let settings = gtk::gio::Settings::new(APP_ID);
-                    if last_print.elapsed() >= Duration::from_secs(10)
-                        && settings.boolean("is-progress-enabled")
-                    {
+                    duration = mpv_node as u64 * 10000000;
+                    if last_print.elapsed() >= interval {
                         last_print = Instant::now();
-                        if let Ok(duration) = env::var("DURATION") {
-                            let tick = duration.parse::<f64>().unwrap() as u64 * 10000000;
-                            let mut back = back.clone();
-                            // println!("Position: {}", tick);
-                            back.tick = tick as u64;
-                            runtime().spawn(async move {
-                                crate::ui::network::positionback(back).await;
-                            });
-                        }
-                    } else if last_print.elapsed() >= Duration::from_secs(30) {
-                        last_print = Instant::now();
-                        if let Ok(duration) = env::var("DURATION") {
-                            let tick = duration.parse::<f64>().unwrap() as u64 * 10000000;
-                            let mut back = back.clone();
-                            // println!("Position: {}", tick);
-                            back.tick = tick as u64;
-                            runtime().spawn(async move {
-                                crate::ui::network::positionback(back).await;
-                            });
-                        }
+                        let mut back = back.clone();
+                        back.tick = duration;
+                        runtime().spawn(async move {
+                            crate::ui::network::positionback(back).await;
+                        });
                     }
                 }
 
