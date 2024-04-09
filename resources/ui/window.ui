@@ -13,7 +13,7 @@
   <template class="AppWindow" parent="AdwApplicationWindow">
     <property name="title" translatable="yes">Tsukimi</property>
     <property name="width-request">1280</property>
-    <property name="height-request">920</property>
+    <property name="height-request">720</property>
     <property name="icon-name">tsukimi</property>
     <child>
       <object class="AdwBreakpoint">
@@ -127,7 +127,7 @@
                                         <property name="label" translatable="yes">Home</property>
                                         <property name="halign">start</property>
                                         <attributes>
-                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                                         </attributes>
                                       </object>
                                     </child>
@@ -156,7 +156,7 @@
                                         <property name="label" translatable="yes">History</property>
                                         <property name="halign">start</property>
                                         <attributes>
-                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                                         </attributes>
                                       </object>
                                     </child>
@@ -185,7 +185,7 @@
                                         <property name="label" translatable="yes">Search</property>
                                         <property name="halign">start</property>
                                         <attributes>
-                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                                         </attributes>
                                       </object>
                                     </child>
@@ -214,7 +214,7 @@
                                         <property name="label" translatable="yes">Preferences</property>
                                         <property name="halign">start</property>
                                         <attributes>
-                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                                         </attributes>
                                       </object>
                                     </child>

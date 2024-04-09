@@ -1,3 +1,7 @@
+* {
+  box-shadow: none;
+}
+
 .checkwatched {
   background: rgba(0, 0, 0, 0.1);
 }
@@ -47,13 +51,13 @@ list {
 
 overlay > label {
   background-color: #aeb5fa;
-  border-radius: 999px;
+  border-radius: 9px;
   margin: 3px;
 }
 
 box > overlay > image {
   background-color: #aeb5fa;
-  border-radius: 999px;
+  border-radius: 9px;
   margin: 3px;
 }
 
@@ -80,19 +84,17 @@ scrolledwindow > viewport > box > box > box {
   margin-top: 15px;
 }
 
-@define-color accent_bg_color #AEB5FA;
-@define-color accent_fg_color #3C0090;
-@define-color accent_color #AEB5FA;
-
 placessidebar {
   background-color: rgba(0, 0, 0, 0);
 }
 .sidebar-pane {
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   background-color: rgba(245, 245, 245, 0);
   color: rgba(1, 1, 1, 0.8);
 }
 
+@define-color accent_bg_color #AEB5FA;
+@define-color accent_fg_color #3C0090;
+@define-color accent_color #AEB5FA;
 @define-color destructive_color #c01c28;
 @define-color destructive_bg_color #e01b24;
 @define-color destructive_fg_color #ffffff;

@@ -45,11 +45,11 @@
                     </child>
                     <child type="overlay">
                       <object class="GtkBox" id="logobox">
-                      <property name="margin-start">30</property>
-                      <property name="margin-top">15</property>
-                      <property name="height-request">150</property>
-                      <property name="valign">start</property>
-                      <property name="halign">start</property>
+                        <property name="margin-start">30</property>
+                        <property name="margin-top">15</property>
+                        <property name="height-request">150</property>
+                        <property name="valign">start</property>
+                        <property name="halign">start</property>
                       </object>
                     </child>
                     <child type="overlay">
@@ -83,7 +83,7 @@
                           <object class="GtkLabel">
                             <property name="label" translatable="yes">Actors</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                             <property name="use-markup">True</property>
                           </object>
@@ -116,7 +116,7 @@
                           <object class="GtkLabel" id="expander-label">
                             <property name="label" translatable="yes">Overview</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                             <property name="use-markup">True</property>
                           </object>
@@ -136,7 +136,7 @@
                                     <child>
                                       <object class="GtkLabel">
                                         <attributes>
-                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                                          <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                                         </attributes>
                                         <property name="halign">start</property>
                                         <property name="label">Season</property>
@@ -172,7 +172,7 @@
                           <object class="GtkLabel">
                             <property name="label" translatable="yes">Links</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                             <property name="use-markup">True</property>
                           </object>
@@ -200,7 +200,7 @@
                           <object class="GtkLabel">
                             <property name="label" translatable="yes">MediaInfo</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                             <property name="use-markup">True</property>
                           </object>

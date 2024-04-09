@@ -1,3 +1,7 @@
+* {
+  box-shadow: none;
+}
+
 .checkwatched {
   background: rgba(0, 0, 0, 0.1);
 }
@@ -43,13 +47,13 @@ list {
 
 overlay > label {
   background-color: #aeb5fa;
-  border-radius: 999px;
+  border-radius: 9px;
   margin: 3px;
 }
 
 box > overlay > image {
   background-color: #aeb5fa;
-  border-radius: 999px;
+  border-radius: 9px;
   margin: 3px;
 }
 
@@ -79,7 +83,6 @@ scrolledwindow > viewport > box > box > box {
 @define-color accent_bg_color #AEB5FA;
 @define-color accent_fg_color #3C0090;
 @define-color accent_color #AEB5FA;
-
 @define-color destructive_color #dc322f;
 @define-color destructive_bg_color #dc322f;
 @define-color destructive_fg_color #fdf6e3;
@@ -156,7 +159,6 @@ scrolledwindow > viewport > box > box > box {
 @define-color dark_4 #241f31;
 @define-color dark_5 #000000;
 .sidebar-pane {
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   background-color: rgba(0, 0, 0, 0);
   color: rgba(255, 255, 255, 0.8);
 }

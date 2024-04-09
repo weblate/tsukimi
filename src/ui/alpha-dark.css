@@ -1,3 +1,7 @@
+* {
+  box-shadow: none;
+}
+
 .checkwatched {
   background: rgba(0, 0, 0, 0.1);
 }
@@ -43,13 +47,13 @@ list {
 
 overlay > label {
   background-color: #aeb5fa;
-  border-radius: 999px;
+  border-radius: 9px;
   margin: 3px;
 }
 
 box > overlay > image {
   background-color: #aeb5fa;
-  border-radius: 999px;
+  border-radius: 9px;
   margin: 3px;
 }
 
@@ -201,7 +205,6 @@ windowcontrols > button.minimize:hover {
 }
 
 .sidebar-pane {
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   background-color: rgba(0, 0, 0, 0);
   color: rgba(255, 255, 255, 0.8);
 }
