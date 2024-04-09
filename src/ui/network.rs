@@ -9,7 +9,6 @@ use std::env;
 use std::fs::{self, write};
 use std::path::PathBuf;
 use std::sync::OnceLock;
-use std::time::Duration;
 use tokio::runtime::{self, Runtime};
 use toml::to_string;
 
@@ -28,9 +27,8 @@ pub fn runtime() -> &'static Runtime {
     static RUNTIME: OnceLock<Runtime> = OnceLock::new();
     RUNTIME.get_or_init(|| {
         runtime::Builder::new_multi_thread()
-            .worker_threads(8)
+            .worker_threads(4)
             .thread_stack_size(STACK_SIZE)
-            .thread_keep_alive(Duration::from_millis(4000))
             .enable_all()
             .build()
             .expect("Setting up tokio runtime needs to succeed.")

@@ -1,4 +1,4 @@
-* {
+window {
   box-shadow: none;
 }
 
@@ -51,14 +51,14 @@ list {
 
 overlay > label {
   background-color: #aeb5fa;
-  border-radius: 9px;
+  border-radius: 999px;
   margin: 3px;
   color: #ffffff;
 }
 
 box > overlay > image {
   background-color: #aeb5fa;
-  border-radius: 9px;
+  border-radius: 999px;
   margin: 3px;
   color: #ffffff;
 }
@@ -177,6 +177,7 @@ placessidebar {
   background-color: rgba(0, 0, 0, 0);
 }
 .sidebar-pane {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   background-color: rgba(0, 0, 0, 0);
 }
 
