@@ -3,7 +3,8 @@ use crate::config::{self, get_device_name, APP_VERSION};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Error;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::json;
+use serde_json::Value;
 use std::env;
 use std::fs::{self, write};
 use std::path::PathBuf;
@@ -30,7 +31,7 @@ pub fn runtime() -> &'static Runtime {
             .worker_threads(8)
             .thread_stack_size(STACK_SIZE)
             .thread_keep_alive(Duration::from_millis(4000))
-            .enable_io()
+            .enable_all()
             .build()
             .expect("Setting up tokio runtime needs to succeed.")
     })
@@ -761,11 +762,7 @@ pub struct Latest {
     pub production_year: Option<u32>,
 }
 
-pub async fn get_latest(
-    id: String,
-    mutex: std::sync::Arc<tokio::sync::Mutex<()>>,
-) -> Result<Vec<Latest>, Error> {
-    let _ = mutex.lock().await;
+pub async fn get_latest(id: String) -> Result<Vec<Latest>, Error> {
     let server_info = config::set_config();
     let client = ReqClient::new();
     let url = format!(

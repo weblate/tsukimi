@@ -1,3 +1,5 @@
+use std::{env, path::PathBuf};
+
 use adw::prelude::*;
 use glib::Object;
 use gtk::{gio, glib, subclass::prelude::*};
@@ -31,6 +33,8 @@ mod imp {
         pub themecontrol: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub proxyentry: TemplateChild<adw::EntryRow>,
+        #[template_child]
+        pub toast: TemplateChild<adw::ToastOverlay>,
     }
 
     // The central trait for subclassing a GObject
@@ -48,6 +52,9 @@ mod imp {
             });
             klass.install_action("win.proxyclear", None, move |set, _action, _parameter| {
                 set.proxyclear();
+            });
+            klass.install_action("setting.clear", None, move |set, _action, _parameter| {
+                set.cacheclear();
             });
         }
 
@@ -103,7 +110,7 @@ impl SettingsPage {
     }
 
     pub fn set_sidebar(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         imp.sidebarcontrol
             .set_active(settings.boolean("is-overlay"));
@@ -116,7 +123,7 @@ impl SettingsPage {
     }
 
     pub fn set_back(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         imp.backcontrol
             .set_active(settings.boolean("is-progress-enabled"));
@@ -128,7 +135,7 @@ impl SettingsPage {
     }
 
     pub fn set_spin(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         imp.spinrow
             .set_value(settings.int("background-height").into());
@@ -140,7 +147,7 @@ impl SettingsPage {
     }
 
     pub fn set_fullscreen(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         imp.autofullscreencontrol
             .set_active(settings.boolean("is-fullscreen"));
@@ -153,7 +160,7 @@ impl SettingsPage {
     }
 
     pub fn set_forcewindow(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         imp.forcewindowcontrol
             .set_active(settings.boolean("is-force-window"));
@@ -166,7 +173,7 @@ impl SettingsPage {
     }
 
     pub fn set_resume(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         imp.resumecontrol.set_active(settings.boolean("is-resume"));
         imp.resumecontrol.connect_active_notify(move |control| {
@@ -177,7 +184,7 @@ impl SettingsPage {
     }
 
     pub fn proxy(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         settings
             .set_string("proxy", &imp.proxyentry.text())
@@ -185,20 +192,31 @@ impl SettingsPage {
     }
 
     pub fn set_proxy(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         imp.proxyentry.set_text(&settings.string("proxy"));
     }
 
     pub fn proxyclear(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         settings.set_string("proxy", "").unwrap();
         imp.proxyentry.set_text("");
     }
 
+    pub fn cacheclear(&self) {
+        let path = env::current_dir().unwrap().parent().unwrap().join("cache");
+        remove_file(path).unwrap();
+        let toast = adw::Toast::builder()
+            .title(format!("Cache Cleared"))
+            .timeout(3)
+            .build();
+        let imp = self.imp();
+        imp.toast.add_toast(toast);
+    }
+
     pub fn set_theme(&self) {
-        let imp = imp::SettingsPage::from_obj(self);
+        let imp = self.imp();
         let settings = gio::Settings::new(APP_ID);
         let theme = settings.string("theme");
         let mut pos = 0;
@@ -229,4 +247,24 @@ impl SettingsPage {
             }
         }));
     }
+}
+
+use std::fs;
+use std::io;
+fn remove_file(path: PathBuf) -> io::Result<()> {
+    let entries = fs::read_dir(path)?;
+
+    for entry in entries {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_file() {
+            fs::remove_file(path)?;
+        } else if path.is_dir() {
+            // remove files recursively
+            fs::remove_dir_all(path)?;
+        }
+    }
+
+    Ok(())
 }
