@@ -39,7 +39,7 @@ pub fn runtime() -> &'static Runtime {
 
 fn client() -> &'static Client {
     static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
-    CLIENT.get_or_init(|| ReqClient::new())
+    CLIENT.get_or_init(ReqClient::build)
 }
 
 pub async fn login(
@@ -156,14 +156,14 @@ pub(crate) async fn search(searchinfo: String) -> Result<Vec<SearchResult>, Erro
             ("SortOrder", "Ascending"),
             ("EnableImageTypes", "Primary,Backdrop,Thumb"),
             ("ImageTypeLimit", "1"),
-            ("Recursive", "true"),
+            ("Recursive", "True"),
             ("SearchTerm", &searchinfo),
             ("GroupProgramsBySeries", "true"),
             ("Limit", "50"),
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
         ]);
@@ -211,7 +211,7 @@ pub async fn get_series_info(id: String) -> Result<Vec<SeriesInfo>, Error> {
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
         ]);
@@ -334,7 +334,7 @@ pub async fn get_item_overview(id: String) -> Result<Item, Error> {
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
         ]);
@@ -427,7 +427,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
         let device_name = &get_device_name();
         let device_id = &env::var("UUID").unwrap();
         let params = Box::new([
-            ("Recursive", "true"),
+            ("Recursive", "True"),
             (
                 "Fields",
                 "BasicSyncInfo,CanDelete,PrimaryImageAspectRatio,ProductionYear",
@@ -439,7 +439,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
         ]);
@@ -476,17 +476,17 @@ pub async fn get_image(id: String) -> Result<String, Error> {
 
                         fs::write(pathbuf.join(format!("{}.png", id)), &bytes).unwrap();
                     }
-                    return Ok(id);
+                    Ok(id)
                 }
                 Err(e) => {
                     eprintln!("loading error");
-                    return Err(e.into());
+                    Err(e)
                 }
             }
         }
         Err(e) => {
             eprintln!("loading error");
-            return Err(e.into());
+            Err(e)
         }
     }
 }
@@ -515,17 +515,17 @@ pub async fn get_thumbimage(id: String) -> Result<String, Error> {
 
                         fs::write(pathbuf.join(format!("t{}.png", id)), &bytes).unwrap();
                     }
-                    return Ok(id);
+                    Ok(id)
                 }
                 Err(e) => {
                     eprintln!("loading error");
-                    return Err(e.into());
+                    Err(e)
                 }
             }
         }
         Err(e) => {
             eprintln!("loading error");
-            return Err(e.into());
+            Err(e)
         }
     }
 }
@@ -554,17 +554,17 @@ pub async fn get_backdropimage(id: String) -> Result<String, Error> {
 
                         fs::write(pathbuf.join(format!("b{}.png", id)), &bytes).unwrap();
                     }
-                    return Ok(id);
+                    Ok(id)
                 }
                 Err(e) => {
                     eprintln!("loading error");
-                    return Err(e.into());
+                    Err(e)
                 }
             }
         }
         Err(e) => {
             eprintln!("loading error");
-            return Err(e.into());
+            Err(e)
         }
     }
 }
@@ -593,17 +593,17 @@ pub async fn get_logoimage(id: String) -> Result<String, Error> {
 
                         fs::write(pathbuf.join(format!("l{}.png", id)), &bytes).unwrap();
                     }
-                    return Ok(id);
+                    Ok(id)
                 }
                 Err(e) => {
                     eprintln!("loading error");
-                    return Err(e.into());
+                    Err(e)
                 }
             }
         }
         Err(e) => {
             eprintln!("loading error");
-            return Err(e.into());
+            Err(e)
         }
     }
 }
@@ -623,7 +623,7 @@ pub async fn get_mediainfo(id: String) -> Result<Media, Error> {
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
         ]);
@@ -656,7 +656,7 @@ pub async fn get_playbackinfo(id: String) -> Result<Media, Error> {
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
             ("reqformat", "json"),
@@ -671,7 +671,7 @@ pub async fn get_playbackinfo(id: String) -> Result<Media, Error> {
         response.json().await?
     };
     let mediainfo: Media = serde_json::from_value(json).unwrap();
-    return Ok(mediainfo);
+    Ok(mediainfo)
 }
 
 pub async fn get_sub(id: String, sourceid: String) -> Result<Media, Error> {
@@ -698,7 +698,7 @@ pub async fn get_sub(id: String, sourceid: String) -> Result<Media, Error> {
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", &device_name),
             ("X-Emby-Device-Id", &device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
             ("reqformat", "json"),
@@ -713,7 +713,7 @@ pub async fn get_sub(id: String, sourceid: String) -> Result<Media, Error> {
         response.json().await?
     };
     let mediainfo: Media = serde_json::from_value(json).unwrap();
-    return Ok(mediainfo);
+    Ok(mediainfo)
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -741,7 +741,7 @@ pub async fn get_library() -> Result<Vec<View>, Error> {
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
         ]);
@@ -749,7 +749,7 @@ pub async fn get_library() -> Result<Vec<View>, Error> {
         response.json().await?
     };
     let views: Vec<View> = serde_json::from_value(json["Items"].take()).unwrap();
-    return Ok(views);
+    Ok(views)
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -789,7 +789,7 @@ pub async fn get_latest(id: String) -> Result<Vec<Latest>, Error> {
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
         ]);
@@ -797,7 +797,7 @@ pub async fn get_latest(id: String) -> Result<Vec<Latest>, Error> {
         response.json().await?
     };
     let latests: Vec<Latest> = serde_json::from_value(json).unwrap();
-    return Ok(latests);
+    Ok(latests)
 }
 
 pub async fn get_list(
@@ -828,12 +828,12 @@ pub async fn get_list(
             ("IncludeItemTypes", "Movie,Series,MusicAlbum"),
             ("SortBy", "DateCreated,SortName"),
             ("SortOrder", "Descending"),
-            ("Recursive", "true"),
+            ("Recursive", "True"),
             ("EnableImageTypes", "Primary,Backdrop,Thumb"),
             ("X-Emby-Client", "Tsukimi"),
             ("X-Emby-Device-Name", device_name),
             ("X-Emby-Device-Id", device_id),
-            ("X-Emby-Client-Version", "0.3.0"),
+            ("X-Emby-Client-Version", APP_VERSION),
             ("X-Emby-Token", &server_info.access_token),
             ("X-Emby-Language", "zh-cn"),
         ]);
@@ -841,24 +841,15 @@ pub async fn get_list(
         response.json().await?
     };
     let latests: List = serde_json::from_value(json).unwrap();
-    return Ok(latests);
+    Ok(latests)
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Default)]
 pub struct List {
     #[serde(rename = "TotalRecordCount")]
     pub total_record_count: u32,
     #[serde(rename = "Items")]
     pub items: Vec<Latest>,
-}
-
-impl Default for List {
-    fn default() -> Self {
-        List {
-            total_record_count: 0,
-            items: Vec::new(),
-        }
-    }
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -880,7 +871,7 @@ pub async fn positionback(back: Back) {
     let device_name = &get_device_name();
     let device_id = &env::var("UUID").unwrap();
     let params = Box::new([
-        ("X-Emby-Client-Version", "0.3.0"),
+        ("X-Emby-Client-Version", APP_VERSION),
         ("X-Emby-Device-Name", device_name),
         ("X-Emby-Device-Id", device_id),
         ("X-Emby-Token", &server_info.access_token),
@@ -908,7 +899,7 @@ pub async fn positionstop(back: Back) {
     let device_name = &get_device_name();
     let device_id = &env::var("UUID").unwrap();
     let params = Box::new([
-        ("X-Emby-Client-Version", "0.3.0"),
+        ("X-Emby-Client-Version", APP_VERSION),
         ("X-Emby-Device-Name", device_name),
         ("X-Emby-Device-Id", device_id),
         ("X-Emby-Token", &server_info.access_token),
@@ -936,7 +927,7 @@ pub async fn playstart(back: Back) {
     let device_name = &get_device_name();
     let device_id = &env::var("UUID").unwrap();
     let params = Box::new([
-        ("X-Emby-Client-Version", "0.3.0"),
+        ("X-Emby-Client-Version", APP_VERSION),
         ("X-Emby-Device-Name", device_name),
         ("X-Emby-Device-Id", device_id),
         ("X-Emby-Token", &server_info.access_token),

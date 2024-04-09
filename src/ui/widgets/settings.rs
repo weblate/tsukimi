@@ -211,7 +211,7 @@ impl SettingsPage {
         let path = env::current_dir().unwrap().parent().unwrap().join("cache");
         remove_file(path).unwrap();
         let toast = adw::Toast::builder()
-            .title(format!("Cache Cleared"))
+            .title("Cache Cleared".to_string())
             .timeout(3)
             .build();
         let imp = self.imp();

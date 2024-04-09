@@ -66,7 +66,10 @@ pub fn play(
         }
 
         let config_path = env::var("MPV_CONFIG_DIR").unwrap();
-        if env::var("MPV_CONFIG").unwrap() == "true" {
+        let config_exists = std::path::PathBuf::from(&config_path)
+            .join("mpv.conf")
+            .exists();
+        if config_exists {
             init.set_property("config-dir", config_path)?;
         }
 

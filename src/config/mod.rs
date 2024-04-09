@@ -42,41 +42,28 @@ pub fn load_cfg() {
         env::set_var("EMBY_ACCESS_TOKEN", &config.access_token);
 
         let uuid = generate_uuid();
-        env::set_var("UUID", &uuid);
+        env::set_var("UUID", uuid);
 
         let mpv_config_dir = env::current_dir().unwrap().parent().unwrap().join("mpv");
-        let mpv_config = if mpv_config_dir.join("mpv.conf").exists() {
-            "true"
-        } else {
-            "false"
-        };
-        env::set_var("MPV_CONFIG", mpv_config);
         env::set_var("MPV_CONFIG_DIR", mpv_config_dir.display().to_string());
     } else {
         let uuid = generate_uuid();
-        env::set_var("UUID", &uuid);
+        env::set_var("UUID", uuid);
 
         let mpv_config_dir = env::current_dir().unwrap().parent().unwrap().join("mpv");
-        let mpv_config = if mpv_config_dir.join("mpv.conf").exists() {
-            "true"
-        } else {
-            "false"
-        };
-        env::set_var("MPV_CONFIG", mpv_config);
         env::set_var("MPV_CONFIG_DIR", mpv_config_dir.display().to_string());
     };
 }
 
 pub fn set_config() -> Config {
-    let config = Config {
+    Config {
         domain: env::var("EMBY_DOMAIN").unwrap(),
         username: env::var("EMBY_USERNAME").unwrap(),
         password: env::var("EMBY_PASSWORD").unwrap(),
         port: env::var("EMBY_PORT").unwrap(),
         user_id: env::var("EMBY_USER_ID").unwrap(),
         access_token: env::var("EMBY_ACCESS_TOKEN").unwrap(),
-    };
-    config
+    }
 }
 
 pub fn get_device_name() -> String {
