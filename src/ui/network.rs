@@ -109,7 +109,7 @@ pub async fn login(
     if !path.exists() {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
     }
-    write(path, &data).unwrap();
+    write(path, data).unwrap();
 
     Ok(())
 }
@@ -945,6 +945,5 @@ pub async fn playstart(back: Back) {
 }
 
 fn get_cache_dir() -> PathBuf {
-    let path = env::current_dir().unwrap().parent().unwrap().join("cache");
-    return path;
+    env::current_dir().unwrap().parent().unwrap().join("cache")
 }

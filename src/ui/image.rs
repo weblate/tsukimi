@@ -219,6 +219,5 @@ pub fn setlogoimage(id: String) -> Revealer {
 }
 
 fn get_cache_dir() -> PathBuf {
-    let path = env::current_dir().unwrap().parent().unwrap().join("cache");
-    return path;
+    env::current_dir().unwrap().parent().unwrap().join("cache")
 }

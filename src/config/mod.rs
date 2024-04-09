@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::{env, fs::File, io::Read};
-use toml;
 use uuid::Uuid;
 
 pub mod proxy;
