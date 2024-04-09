@@ -26,6 +26,8 @@ mod imp {
         #[template_child]
         pub spinrow: TemplateChild<adw::SpinRow>,
         #[template_child]
+        pub threadspinrow: TemplateChild<adw::SpinRow>,
+        #[template_child]
         pub forcewindowcontrol: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub resumecontrol: TemplateChild<adw::SwitchRow>,
@@ -76,6 +78,7 @@ mod imp {
             obj.set_resume();
             obj.set_proxy();
             obj.set_theme();
+            obj.set_thread();
         }
     }
 
@@ -246,6 +249,15 @@ impl SettingsPage {
                 _ => (),
             }
         }));
+    }
+
+    pub fn set_thread(&self) {
+        let imp = self.imp();
+        let settings = gio::Settings::new(APP_ID);
+        imp.threadspinrow.set_value(settings.int("threads").into());
+        imp.threadspinrow.connect_value_notify(move |control| {
+            settings.set_int("threads", control.value() as i32).unwrap();
+        });
     }
 }
 

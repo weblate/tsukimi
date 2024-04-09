@@ -1,5 +1,6 @@
 use crate::config::proxy::ReqClient;
 use crate::config::{self, get_device_name, APP_VERSION};
+use gtk::prelude::SettingsExt;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Client, Error};
 use serde::{Deserialize, Serialize};
@@ -25,13 +26,14 @@ pub struct Config {
 pub fn runtime() -> &'static Runtime {
     const STACK_SIZE: usize = 6 * 1024 * 1024;
     static RUNTIME: OnceLock<Runtime> = OnceLock::new();
+    let settings = gtk::gio::Settings::new(crate::APP_ID);
     RUNTIME.get_or_init(|| {
         runtime::Builder::new_multi_thread()
-            .worker_threads(4)
+            .worker_threads(settings.int("threads") as usize)
             .thread_stack_size(STACK_SIZE)
             .enable_all()
             .build()
-            .expect("failed to create runtime")
+            .expect("Failed to create runtime")
     })
 }
 
@@ -167,10 +169,9 @@ pub(crate) async fn search(searchinfo: String) -> Result<Vec<SearchResult>, Erro
         ]);
 
         let response = client.get(&url).query(&params).send().await?;
-        let json: serde_json::Value = response.json().await?;
-        serde_json::from_value(json["Items"].clone()).unwrap()
+        let mut json: serde_json::Value = response.json().await?;
+        serde_json::from_value(json["Items"].take()).unwrap()
     };
-
     model.search_results = items;
     Ok(model.search_results)
 }
@@ -198,7 +199,7 @@ pub async fn get_series_info(id: String) -> Result<Vec<SeriesInfo>, Error> {
         "{}:{}/emby/Shows/{}/Episodes",
         server_info.domain, server_info.port, id
     );
-    let json: serde_json::Value = {
+    let mut json: serde_json::Value = {
         let device_name = &get_device_name();
         let device_id = &env::var("UUID").unwrap();
 
@@ -217,7 +218,7 @@ pub async fn get_series_info(id: String) -> Result<Vec<SeriesInfo>, Error> {
         let response = client.get(&url).query(&params).send().await?;
         response.json().await?
     };
-    let seriesinfo: Vec<SeriesInfo> = serde_json::from_value(json["Items"].clone()).unwrap();
+    let seriesinfo: Vec<SeriesInfo> = serde_json::from_value(json["Items"].take()).unwrap();
     Ok(seriesinfo)
 }
 
@@ -324,7 +325,7 @@ pub async fn get_item_overview(id: String) -> Result<Item, Error> {
         "{}:{}/emby/Users/{}/Items/{}",
         server_info.domain, server_info.port, server_info.user_id, id
     );
-    let json: serde_json::Value = {
+    let mut json: serde_json::Value = {
         let device_name = &get_device_name();
         let device_id = &env::var("UUID").unwrap();
 
@@ -340,7 +341,7 @@ pub async fn get_item_overview(id: String) -> Result<Item, Error> {
         let response = client.get(&url).query(&params).send().await?;
         response.json().await?
     };
-    let item: Item = serde_json::from_value(json.clone()).unwrap();
+    let item: Item = serde_json::from_value(json.take()).unwrap();
     Ok(item)
 }
 
@@ -422,7 +423,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
         "{}:{}/emby/Users/{}/Items/Resume",
         server_info.domain, server_info.port, server_info.user_id
     );
-    let json: serde_json::Value = {
+    let mut json: serde_json::Value = {
         let device_name = &get_device_name();
         let device_id = &env::var("UUID").unwrap();
         let params = Box::new([
@@ -446,7 +447,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
         let response = client.get(&url).query(&params).send().await?;
         response.json().await?
     };
-    let items: Vec<Resume> = serde_json::from_value(json["Items"].clone()).unwrap();
+    let items: Vec<Resume> = serde_json::from_value(json["Items"].take()).unwrap();
     model.resume = items;
     Ok(model.resume)
 }
@@ -614,7 +615,7 @@ pub async fn get_mediainfo(id: String) -> Result<Media, Error> {
         "{}:{}/emby/Users/{}/Items/{}",
         server_info.domain, server_info.port, server_info.user_id, id
     );
-    let json: serde_json::Value = {
+    let mut json: serde_json::Value = {
         let device_name = &get_device_name();
         let device_id = &env::var("UUID").unwrap();
         let params = Box::new([
@@ -629,7 +630,7 @@ pub async fn get_mediainfo(id: String) -> Result<Media, Error> {
         let response = client.get(&url).query(&params).send().await?;
         response.json().await?
     };
-    let mediainfo: Media = serde_json::from_value(json.clone()).unwrap();
+    let mediainfo: Media = serde_json::from_value(json.take()).unwrap();
     Ok(mediainfo)
 }
 
@@ -669,7 +670,7 @@ pub async fn get_playbackinfo(id: String) -> Result<Media, Error> {
             .await?;
         response.json().await?
     };
-    let mediainfo: Media = serde_json::from_value(json.clone()).unwrap();
+    let mediainfo: Media = serde_json::from_value(json).unwrap();
     return Ok(mediainfo);
 }
 
@@ -711,7 +712,7 @@ pub async fn get_sub(id: String, sourceid: String) -> Result<Media, Error> {
             .await?;
         response.json().await?
     };
-    let mediainfo: Media = serde_json::from_value(json.clone()).unwrap();
+    let mediainfo: Media = serde_json::from_value(json).unwrap();
     return Ok(mediainfo);
 }
 
@@ -733,7 +734,7 @@ pub async fn get_library() -> Result<Vec<View>, Error> {
         server_info.domain, server_info.port, server_info.user_id
     );
 
-    let json: serde_json::Value = {
+    let mut json: serde_json::Value = {
         let device_name = &get_device_name();
         let device_id = &env::var("UUID").unwrap();
         let params = Box::new([
@@ -747,7 +748,7 @@ pub async fn get_library() -> Result<Vec<View>, Error> {
         let response = client.get(&url).query(&params).send().await?;
         response.json().await?
     };
-    let views: Vec<View> = serde_json::from_value(json["Items"].clone()).unwrap();
+    let views: Vec<View> = serde_json::from_value(json["Items"].take()).unwrap();
     return Ok(views);
 }
 
@@ -795,7 +796,7 @@ pub async fn get_latest(id: String) -> Result<Vec<Latest>, Error> {
         let response = client.get(&url).query(&params).send().await?;
         response.json().await?
     };
-    let latests: Vec<Latest> = serde_json::from_value(json.clone()).unwrap();
+    let latests: Vec<Latest> = serde_json::from_value(json).unwrap();
     return Ok(latests);
 }
 
@@ -839,7 +840,7 @@ pub async fn get_list(
         let response = client.get(&url).query(&params).send().await?;
         response.json().await?
     };
-    let latests: List = serde_json::from_value(json.clone()).unwrap();
+    let latests: List = serde_json::from_value(json).unwrap();
     return Ok(latests);
 }
 
