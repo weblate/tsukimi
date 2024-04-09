@@ -1,7 +1,7 @@
 use crate::config::proxy::ReqClient;
 use crate::config::{self, get_device_name, APP_VERSION};
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Error;
+use reqwest::{Client, Error};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_json::Value;
@@ -31,8 +31,13 @@ pub fn runtime() -> &'static Runtime {
             .thread_stack_size(STACK_SIZE)
             .enable_all()
             .build()
-            .expect("Setting up tokio runtime needs to succeed.")
+            .expect("failed to create runtime")
     })
+}
+
+fn client() -> &'static Client {
+    static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+    CLIENT.get_or_init(|| ReqClient::new())
 }
 
 pub async fn login(
@@ -41,7 +46,7 @@ pub async fn login(
     password: String,
     port: String,
 ) -> Result<(), Error> {
-    let client = ReqClient::new();
+    let client = client();
 
     let mut headers = HeaderMap::new();
     headers.insert("X-Emby-Client", HeaderValue::from_static("Tsukimi"));
@@ -129,7 +134,7 @@ pub(crate) async fn search(searchinfo: String) -> Result<Vec<SearchResult>, Erro
     };
     let server_info = config::set_config();
 
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Users/{}/Items",
         server_info.domain, server_info.port, server_info.user_id
@@ -188,7 +193,7 @@ pub struct SeriesInfo {
 
 pub async fn get_series_info(id: String) -> Result<Vec<SeriesInfo>, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Shows/{}/Episodes",
         server_info.domain, server_info.port, id
@@ -314,7 +319,7 @@ pub struct Urls {
 
 pub async fn get_item_overview(id: String) -> Result<Item, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Users/{}/Items/{}",
         server_info.domain, server_info.port, server_info.user_id, id
@@ -341,7 +346,7 @@ pub async fn get_item_overview(id: String) -> Result<Item, Error> {
 
 pub async fn _markwatched(id: String, sourceid: String) -> Result<String, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Users/{}/PlayingItems/{}",
         server_info.domain, server_info.port, server_info.user_id, id
@@ -412,7 +417,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
     let mut model = ResumeModel { resume: Vec::new() };
     let server_info = config::set_config();
 
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Users/{}/Items/Resume",
         server_info.domain, server_info.port, server_info.user_id
@@ -449,7 +454,7 @@ pub(crate) async fn resume() -> Result<Vec<Resume>, Error> {
 pub async fn get_image(id: String) -> Result<String, Error> {
     let server_info = config::set_config();
 
-    let result = ReqClient::new()
+    let result = client()
         .get(&format!(
             "{}:{}/emby/Items/{}/Images/Primary?maxHeight=400",
             server_info.domain, server_info.port, id
@@ -488,7 +493,7 @@ pub async fn get_image(id: String) -> Result<String, Error> {
 pub async fn get_thumbimage(id: String) -> Result<String, Error> {
     let server_info = config::set_config();
 
-    let result = ReqClient::new()
+    let result = client()
         .get(&format!(
             "{}:{}/emby/Items/{}/Images/Thumb",
             server_info.domain, server_info.port, id
@@ -527,7 +532,7 @@ pub async fn get_thumbimage(id: String) -> Result<String, Error> {
 pub async fn get_backdropimage(id: String) -> Result<String, Error> {
     let server_info = config::set_config();
 
-    let result = ReqClient::new()
+    let result = client()
         .get(&format!(
             "{}:{}/emby/Items/{}/Images/Backdrop",
             server_info.domain, server_info.port, id
@@ -566,7 +571,7 @@ pub async fn get_backdropimage(id: String) -> Result<String, Error> {
 pub async fn get_logoimage(id: String) -> Result<String, Error> {
     let server_info = config::set_config();
 
-    let result = ReqClient::new()
+    let result = client()
         .get(&format!(
             "{}:{}/emby/Items/{}/Images/Logo",
             server_info.domain, server_info.port, id
@@ -604,7 +609,7 @@ pub async fn get_logoimage(id: String) -> Result<String, Error> {
 
 pub async fn get_mediainfo(id: String) -> Result<Media, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Users/{}/Items/{}",
         server_info.domain, server_info.port, server_info.user_id, id
@@ -630,7 +635,7 @@ pub async fn get_mediainfo(id: String) -> Result<Media, Error> {
 
 pub async fn get_playbackinfo(id: String) -> Result<Media, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Items/{}/PlaybackInfo",
         server_info.domain, server_info.port, id
@@ -670,7 +675,7 @@ pub async fn get_playbackinfo(id: String) -> Result<Media, Error> {
 
 pub async fn get_sub(id: String, sourceid: String) -> Result<Media, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Items/{}/PlaybackInfo",
         server_info.domain, server_info.port, id
@@ -722,7 +727,7 @@ pub struct View {
 
 pub async fn get_library() -> Result<Vec<View>, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Users/{}/Views",
         server_info.domain, server_info.port, server_info.user_id
@@ -762,7 +767,7 @@ pub struct Latest {
 
 pub async fn get_latest(id: String) -> Result<Vec<Latest>, Error> {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Users/{}/Items/Latest",
         server_info.domain, server_info.port, server_info.user_id
@@ -801,7 +806,7 @@ pub async fn get_list(
 ) -> Result<List, Error> {
     let _ = mutex.lock().await;
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Users/{}/Items",
         server_info.domain, server_info.port, server_info.user_id
@@ -865,7 +870,7 @@ pub struct Back {
 
 pub async fn positionback(back: Back) {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Sessions/Playing/Progress",
         server_info.domain, server_info.port
@@ -893,7 +898,7 @@ pub async fn positionback(back: Back) {
 
 pub async fn positionstop(back: Back) {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Sessions/Playing/Stopped",
         server_info.domain, server_info.port
@@ -921,7 +926,7 @@ pub async fn positionstop(back: Back) {
 
 pub async fn playstart(back: Back) {
     let server_info = config::set_config();
-    let client = ReqClient::new();
+    let client = client();
     let url = format!(
         "{}:{}/emby/Sessions/Playing",
         server_info.domain, server_info.port
