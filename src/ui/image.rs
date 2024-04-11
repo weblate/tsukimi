@@ -219,5 +219,10 @@ pub fn setlogoimage(id: String) -> Revealer {
 }
 
 fn get_cache_dir() -> PathBuf {
-    env::current_dir().unwrap().parent().unwrap().join("cache")
+    env::current_exe()
+        .unwrap()
+        .ancestors()
+        .nth(2)
+        .unwrap()
+        .join("cache")
 }

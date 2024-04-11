@@ -34,6 +34,8 @@ mod imp {
         #[template_child]
         pub insidestack: TemplateChild<gtk::Stack>,
         #[template_child]
+        pub backgroundstack: TemplateChild<gtk::Stack>,
+        #[template_child]
         pub popbutton: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub settingspage: TemplateChild<adw::NavigationPage>,
@@ -55,6 +57,8 @@ mod imp {
         pub navipage: TemplateChild<adw::NavigationPage>,
         #[template_child]
         pub toast: TemplateChild<adw::ToastOverlay>,
+        #[template_child]
+        pub rootpic: TemplateChild<gtk::Picture>,
         pub selection: gtk::SingleSelection,
         pub settings: OnceCell<Settings>,
     }
@@ -103,6 +107,7 @@ mod imp {
             // Call "constructed" on parent
             self.parent_constructed();
             let obj = self.obj();
+            obj.setup_rootpic();
             obj.setup_settings();
             obj.load_window_size();
             obj.loginenter();
@@ -173,6 +178,8 @@ impl Window {
             if tag.as_str() == "homepage" {
                 imp.navipage.set_title("Home");
                 self.change_pop_visibility();
+            } else {
+                imp.navipage.set_title(&tag);
             }
         }
     }
@@ -184,6 +191,8 @@ impl Window {
             if tag.as_str() == "historypage" {
                 imp.navipage.set_title("History");
                 self.change_pop_visibility();
+            } else {
+                imp.navipage.set_title(&tag);
             }
         }
     }
@@ -195,6 +204,8 @@ impl Window {
             if tag.as_str() == "searchpage" {
                 imp.navipage.set_title("Search");
                 self.change_pop_visibility();
+            } else {
+                imp.navipage.set_title(&tag);
             }
         }
     }
@@ -451,12 +462,12 @@ impl Window {
     }
 
     fn loginenter(&self) {
-        let path = env::current_dir()
+        let path = env::current_exe()
             .unwrap()
-            .parent()
+            .ancestors()
+            .nth(2)
             .unwrap()
-            .join("config")
-            .join("tsukimi.toml");
+            .join("config/tsukimi.toml");
         if path.exists() {
             self.mainpage();
             self.homepage();
@@ -470,5 +481,35 @@ impl Window {
             .timeout(3)
             .build();
         imp.toast.add_toast(toast);
+    }
+
+    pub fn current_view_name(&self) -> String {
+        let imp = self.imp();
+        imp.insidestack.visible_child_name().unwrap().to_string()
+    }
+
+    pub fn set_rootpic(&self, file: gio::File) {
+        let imp = self.imp();
+        let backgroundstack = imp.backgroundstack.get();
+        let pic = gtk::Picture::builder()
+            .halign(gtk::Align::Fill)
+            .valign(gtk::Align::Fill)
+            .hexpand(true)
+            .vexpand(true)
+            .content_fit(gtk::ContentFit::Cover)
+            .file(&file)
+            .build();
+        let settings = Settings::new(APP_ID);
+        let opacity = settings.int("pic-opacity");
+        pic.set_opacity(opacity as f64 / 100.0);
+        backgroundstack.add_child(&pic);
+        backgroundstack.set_visible_child(&pic);
+    }
+
+    pub fn setup_rootpic(&self) {
+        let settings = Settings::new(APP_ID);
+        let pic = settings.string("root-pic");
+        let file = gio::File::for_path(&pic);
+        self.set_rootpic(file);
     }
 }

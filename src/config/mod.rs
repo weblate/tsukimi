@@ -3,7 +3,7 @@ use std::{env, fs::File, io::Read};
 use uuid::Uuid;
 
 pub mod proxy;
-pub const APP_VERSION: &str = "0.4.0";
+pub const APP_VERSION: &str = "0.4.1";
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Config {
@@ -21,12 +21,12 @@ fn generate_uuid() -> String {
 }
 
 pub fn load_cfg() {
-    let path = env::current_dir()
+    let path = env::current_exe()
         .unwrap()
-        .parent()
+        .ancestors()
+        .nth(2)
         .unwrap()
-        .join("config")
-        .join("tsukimi.toml");
+        .join("config/tsukimi.toml");
 
     if path.exists() {
         let mut file = File::open(path).unwrap();
@@ -43,13 +43,24 @@ pub fn load_cfg() {
         let uuid = generate_uuid();
         env::set_var("UUID", uuid);
 
-        let mpv_config_dir = env::current_dir().unwrap().parent().unwrap().join("mpv");
+        let mpv_config_dir = env::current_exe()
+            .unwrap()
+            .ancestors()
+            .nth(2)
+            .unwrap()
+            .join("mpv");
+
         env::set_var("MPV_CONFIG_DIR", mpv_config_dir.display().to_string());
     } else {
         let uuid = generate_uuid();
         env::set_var("UUID", uuid);
 
-        let mpv_config_dir = env::current_dir().unwrap().parent().unwrap().join("mpv");
+        let mpv_config_dir = env::current_exe()
+            .unwrap()
+            .ancestors()
+            .nth(2)
+            .unwrap()
+            .join("mpv");
         env::set_var("MPV_CONFIG_DIR", mpv_config_dir.display().to_string());
     };
 }
