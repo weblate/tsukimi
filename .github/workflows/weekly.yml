@@ -32,7 +32,7 @@ jobs:
         run: |
           rustup toolchain install stable-gnu
           rustup default stable-gnu
-          C:\msys64\usr\bin\pacman.exe -S --needed --noconfirm mingw-w64-x86_64-gtk4 mingw-w64-x86_64-pkgconf mingw-w64-x86_64-gcc mingw-w64-x86_64-libadwaita mingw-w64-x86_64-mpv
+          C:\msys64\usr\bin\pacman.exe -S --needed --noconfirm mingw-w64-x86_64-gtk4 mingw-w64-x86_64-pkgconf mingw-w64-x86_64-gcc mingw-w64-x86_64-libadwaita
           C:\msys64\usr\bin\pacman.exe -Syu --noconfirm
 
       - name: Install latest libmpv-dev
@@ -42,7 +42,7 @@ jobs:
           Get-Latest-Mpv
           mv -force libmpv.dll.a c:/msys64/mingw64/lib
           mv -force libmpv-2.dll c:/msys64/mingw64/bin
-          mv -force include/mpv/*.h c:/msys64/mingw64/include/mpv/
+          mv -force include/mpv c:/msys64/mingw64/include
           cd ..
 
       - name: Build ${{ matrix.target }}
