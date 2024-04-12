@@ -3,6 +3,7 @@ use gio::Settings;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use std::env;
+use std::path::PathBuf;
 mod imp {
     use std::cell::OnceCell;
 
@@ -519,7 +520,7 @@ impl Window {
             pic.set_opacity(opacity as f64 / 100.0);
             backgroundstack.add_child(&pic);
             backgroundstack.set_visible_child(&pic);
-            if backgroundstack.observe_children().n_items() > 1 {
+            if backgroundstack.observe_children().n_items() > 2 {
                 if let Some(child) = backgroundstack.first_child() {
                     backgroundstack.remove(&child);
                 }
@@ -530,19 +531,20 @@ impl Window {
     pub fn setup_rootpic(&self) {
         let settings = Settings::new(APP_ID);
         let pic = settings.string("root-pic");
-        let file = gio::File::for_path(&pic);
-        self.set_rootpic(file);
+        let pathbuf = PathBuf::from(pic);
+        if pathbuf.exists() {
+            let file = gio::File::for_path(&pathbuf);
+            self.set_rootpic(file);
+        }
     }
 
     pub fn set_picopacity(&self, opacity: i32) {
         let imp = self.imp();
         let backgroundstack = imp.backgroundstack.get();
-        let pic = backgroundstack
-            .last_child()
-            .unwrap()
-            .downcast::<gtk::Picture>()
-            .unwrap();
-        pic.set_opacity(opacity as f64 / 100.0);
+        if let Some(child) = backgroundstack.last_child() {
+            let pic = child.downcast::<gtk::Picture>().unwrap();
+            pic.set_opacity(opacity as f64 / 100.0);
+        }
     }
 
     pub fn clear_pic(&self) {
