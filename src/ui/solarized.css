@@ -41,10 +41,6 @@ gridview > child box {
   margin: 0px;
 }
 
-list {
-  background-color: rgba(0, 0, 0, 0);
-}
-
 overlay > label {
   background-color: #aeb5fa;
   border-radius: 999px;
