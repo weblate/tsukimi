@@ -316,6 +316,14 @@ pub struct Item {
     pub tags: Option<Vec<SGTitem>>,
     #[serde(rename = "UserData")]
     pub user_data: Option<UserData>,
+    #[serde(rename = "CommunityRating")]
+    pub community_rating: Option<f64>,
+    #[serde(rename = "OfficialRating")]
+    pub official_rating: Option<String>,
+    #[serde(rename = "RunTimeTicks")]
+    pub run_time_ticks: Option<u64>,
+    #[serde(rename = "Taglines")]
+    pub taglines: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -528,7 +536,7 @@ pub async fn get_thumbimage(id: String) -> Result<String, Error> {
 
     let result = client()
         .get(&format!(
-            "{}:{}/emby/Items/{}/Images/Thumb",
+            "{}:{}/emby/Items/{}/Images/Thumb?maxHeight=400",
             server_info.domain, server_info.port, id
         ))
         .send()
@@ -571,7 +579,7 @@ pub async fn get_backdropimage(id: String) -> Result<String, Error> {
 
     let result = client()
         .get(&format!(
-            "{}:{}/emby/Items/{}/Images/Backdrop",
+            "{}:{}/emby/Items/{}/Images/Backdrop?maxHeight=1200",
             server_info.domain, server_info.port, id
         ))
         .send()
@@ -614,7 +622,7 @@ pub async fn get_logoimage(id: String) -> Result<String, Error> {
 
     let result = client()
         .get(&format!(
-            "{}:{}/emby/Items/{}/Images/Logo",
+            "{}:{}/emby/Items/{}/Images/Logo?maxHeight=400",
             server_info.domain, server_info.port, id
         ))
         .send()
@@ -1060,6 +1068,36 @@ pub(crate) async fn person_item(id: &str, types: &str) -> Result<Vec<Item>, Erro
     let mut json: serde_json::Value = response.json().await?;
     let items: Vec<Item> = serde_json::from_value(json["Items"].take()).unwrap();
     Ok(items)
+}
+
+pub async fn get_search_recommend() -> Result<List, Error> {
+    let server_info = config::set_config();
+    let url = format!(
+        "{}:{}/emby/Users/{}/Items",
+        server_info.domain, server_info.port, server_info.user_id
+    );
+    let json: serde_json::Value = {
+        let device_name = get_device_name();
+        let device_id = env::var("UUID").unwrap();
+        let params = Box::new([
+            ("Limit", "20"),
+            ("EnableTotalRecordCount", "false"),
+            ("ImageTypeLimit", "0"),
+            ("Recursive", "True"),
+            ("IncludeItemTypes", "Movie,Series"),
+            ("SortBy", "IsFavoriteOrLiked,Random"),
+            ("X-Emby-Client", "Tsukimi"),
+            ("X-Emby-Device-Name", &device_name),
+            ("X-Emby-Device-Id", &device_id),
+            ("X-Emby-Client-Version", APP_VERSION),
+            ("X-Emby-Token", &server_info.access_token),
+            ("X-Emby-Language", "zh-cn"),
+        ]);
+        let response = client().get(&url).query(&params).send().await?;
+        response.json().await?
+    };
+    let latests: List = serde_json::from_value(json).unwrap();
+    Ok(latests)
 }
 
 fn get_cache_dir() -> PathBuf {

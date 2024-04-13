@@ -1,6 +1,6 @@
 [package]
 name = "tsukimi"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2021"
 description = "A simple Emby Client with MPV written by GTK4-RS"
 license = "MIT"
@@ -23,6 +23,7 @@ crossbeam = "0.8.4"
 libc = "0.2.153"
 uuid = { version = "1.8.0", features = ["v4"] }
 toml = "0.8.12"
+chrono = "0.4.37"
 
 [build-dependencies]
 embed-resource = "2.4.2"
