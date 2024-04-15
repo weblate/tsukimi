@@ -58,12 +58,12 @@ box > overlay > image {
 }
 
 .frame {
-    border: 2px solid @borders;
-    border-radius: 5px;
+  border: 2px solid @borders;
+  border-radius: 5px;
 }
 
 .pill {
-    border-radius: 10px;
+  border-radius: 10px;
 }
 
 revealer > expander-widget > box > box > widget {
@@ -100,6 +100,11 @@ placessidebar {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   background-color: rgba(0, 0, 0, 0);
   color: #000;
+}
+
+.serverrow {
+  margin: 6px;
+  border-radius: 10px;
 }
 
 @define-color destructive_color rgb(210, 15, 57);

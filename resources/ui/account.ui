@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template parent="AdwDialog" class="AccountWindow">
+    <property name="content-width">820</property>
+    <property name="content-height">400</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="title" translatable="yes">Add a New Account</property>
+    <child>
+      <object class="AdwToastOverlay" id="toast">
+        <child>
+          <object class="AdwNavigationView" id="navigation_view">
+            <child>
+              <object class="AdwNavigationPage">
+                <property name="tag">main</property>
+                <property name="title" translatable="yes">Add a New Account</property>
+                <property name="child">
+                  <object class="AdwToolbarView">
+                    <child type="top">
+                      <object class="AdwHeaderBar">
+                        <property name="show-end-title-buttons">False</property>
+                        <property name="show-start-title-buttons">False</property>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">Cancel</property>
+                            <property name="action-name">window.close</property>
+                          </object>
+                        </child>
+                        <child type="end">
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">_Add</property>
+                            <property name="use-underline">True</property>
+                            <property name="sensitive">False</property>
+                            <property name="receives-default">True</property>
+                            <property name="action-name">account.add</property>
+                            <style>
+                              <class name="suggested-action" />
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow">
+                        <property name="hscrollbar-policy">never</property>
+                        <child>
+                          <object class="AdwClamp">
+                            <property name="margin-top">36</property>
+                            <property name="margin-bottom">12</property>
+                            <property name="vexpand">True</property>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">18</property>
+                                <property name="margin-start">12</property>
+                                <property name="margin-end">12</property>
+                                <child>
+                                  <object class="GtkListBox">
+                                    <property name="selection-mode">none</property>
+                                    <child>
+                                      <object class="AdwEntryRow" id="servername_entry">
+                                        <property name="title" translatable="yes">Name</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="AdwEntryRow" id="server_entry">
+                                        <property name="title" translatable="yes">Server</property>
+                                        <child type="suffix">
+                                          <object class="GtkEntry" id="port_entry">
+                                            <property name="halign">end</property>
+                                            <property name="valign">center</property>
+                                            <property name="placeholder-text" translatable="yes">Port</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="AdwEntryRow" id="username_entry">
+                                        <property name="title" translatable="yes">Username</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="AdwPasswordEntryRow" id="password_entry">
+                                        <property name="title" translatable="yes">Password</property>
+                                      </object>
+                                    </child>
+                                    <style>
+                                      <class name="boxed-list" />
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkSpinner" id="spinner">
+                                    <property name="visible">False</property>
+                                    <property name="spinning">True</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

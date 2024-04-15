@@ -35,7 +35,7 @@
                                 <property name="margin-start">12</property>
                                 <property name="halign">start</property>
                                 <attributes>
-                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                                 </attributes>
                               </object>
                             </child>

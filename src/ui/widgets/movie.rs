@@ -1,13 +1,16 @@
-use super::actor::ActorPage;
-use super::fix::fix;
-use super::item::ItemPage;
-use crate::ui::network::{runtime, similar};
 use adw::prelude::NavigationPageExt;
 use adw::subclass::prelude::*;
 use glib::Object;
 use gtk::prelude::*;
 use gtk::{gio, glib};
 use std::env;
+
+use crate::ui::models::SETTINGS;
+use crate::ui::network::{runtime, similar};
+
+use super::actor::ActorPage;
+use super::fix::fix;
+use super::item::ItemPage;
 
 mod imp {
     use adw::subclass::prelude::*;
@@ -122,7 +125,7 @@ mod imp {
                 sender
                     .send_blocking(false)
                     .expect("The channel needs to be open.");
-                std::thread::sleep(std::time::Duration::from_millis(500));
+                std::thread::sleep(std::time::Duration::from_millis(400));
                 sender
                     .send_blocking(true)
                     .expect("The channel needs to be open.");
@@ -175,10 +178,13 @@ impl MoviePage {
             .ancestors()
             .nth(2)
             .unwrap()
-            .join(format!("cache/b{}.png", id));
+            .join(format!(
+                "cache/{}/b{}.png",
+                env::var("EMBY_NAME").unwrap(),
+                id
+            ));
         let backdrop = imp.backdrop.get();
-        let settings = gtk::gio::Settings::new(crate::APP_ID);
-        backdrop.set_height_request(settings.int("background-height"));
+        backdrop.set_height_request(SETTINGS.background_height());
         let (sender, receiver) = async_channel::bounded::<String>(1);
         let id2 = id.clone();
         if pathbuf.exists() {
@@ -206,7 +212,7 @@ impl MoviePage {
                     .ancestors()
                     .nth(2)
                     .unwrap()
-                    .join(format!("cache/b{}.png", id2));
+                    .join(format!("cache/{}/b{}.png",env::var("EMBY_NAME").unwrap(), id2));
                 if pathbuf.exists() {
                     let file = gtk::gio::File::for_path(&pathbuf);
                     backdrop.set_file(Some(&file));

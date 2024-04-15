@@ -1,3 +1,13 @@
+## 0.4.5
+
+### Breaking Changes
+
+- ⚠️ **Breaking Change:** ⚠️ remove tsukimi.toml and relogin if you encounter login issues.
+
+### Highlights
+
+- Added multi accounts support 
+
 ## 0.4.3
 
 ### Added

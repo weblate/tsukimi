@@ -1,3 +1,4 @@
+pub mod account_add;
 pub mod actor;
 pub mod episoderow;
 pub mod fix;

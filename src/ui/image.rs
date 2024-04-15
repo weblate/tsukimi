@@ -1,8 +1,8 @@
-// use gtk::cairo::Path;
 use gtk::glib::{self, clone};
 use gtk::{prelude::*, Revealer};
 use std::env;
 use std::path::PathBuf;
+
 pub fn setimage(id: String) -> Revealer {
     let (sender, receiver) = async_channel::bounded::<String>(1);
 
@@ -17,7 +17,7 @@ pub fn setimage(id: String) -> Revealer {
         .transition_duration(400)
         .build();
 
-    let pathbuf = get_cache_dir().join(format!("{}.png", id));
+    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("{}.png", id));
     let idfuture = id.clone();
     if pathbuf.exists() {
         if image.file().is_none() {
@@ -47,7 +47,7 @@ pub fn setimage(id: String) -> Revealer {
 
     glib::spawn_future_local(clone!(@weak image,@weak revealer => async move {
         while receiver.recv().await.is_ok() {
-            let path = get_cache_dir().join(format!("{}.png",idfuture));
+            let path = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("{}.png",idfuture));
             let file = gtk::gio::File::for_path(&path);
             image.set_file(Some(&file));
             revealer.set_reveal_child(true);
@@ -71,7 +71,7 @@ pub fn setthumbimage(id: String) -> Revealer {
         .transition_duration(400)
         .build();
 
-    let pathbuf = get_cache_dir().join(format!("t{}.png", id));
+    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("t{}.png", id));
     let idfuture = id.clone();
     if pathbuf.exists() {
         if image.file().is_none() {
@@ -101,7 +101,7 @@ pub fn setthumbimage(id: String) -> Revealer {
 
     glib::spawn_future_local(clone!(@weak image,@weak revealer => async move {
         while receiver.recv().await.is_ok() {
-            let path = get_cache_dir().join(format!("t{}.png",idfuture));
+            let path = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("t{}.png",idfuture));
             let file = gtk::gio::File::for_path(&path);
             image.set_file(Some(&file));
             revealer.set_reveal_child(true);
@@ -125,7 +125,7 @@ pub fn setbackdropimage(id: String) -> Revealer {
         .transition_duration(400)
         .build();
 
-    let pathbuf = get_cache_dir().join(format!("b{}.png", id));
+    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("b{}.png", id));
     let idfuture = id.clone();
     if pathbuf.exists() {
         if image.file().is_none() {
@@ -155,7 +155,7 @@ pub fn setbackdropimage(id: String) -> Revealer {
 
     glib::spawn_future_local(clone!(@weak image,@weak revealer => async move {
         while receiver.recv().await.is_ok() {
-            let path = get_cache_dir().join(format!("b{}.png",idfuture));
+            let path = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("b{}.png",idfuture));
             let file = gtk::gio::File::for_path(&path);
             image.set_file(Some(&file));
             revealer.set_reveal_child(true);
@@ -178,7 +178,7 @@ pub fn setlogoimage(id: String) -> Revealer {
         .transition_duration(400)
         .build();
 
-    let pathbuf = get_cache_dir().join(format!("l{}.png", id));
+    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("l{}.png", id));
     let idfuture = id.clone();
     if pathbuf.exists() {
         if image.file().is_none() {
@@ -208,7 +208,7 @@ pub fn setlogoimage(id: String) -> Revealer {
 
     glib::spawn_future_local(clone!(@weak image,@weak revealer => async move {
         while receiver.recv().await.is_ok() {
-            let path = get_cache_dir().join(format!("l{}.png",idfuture));
+            let path = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("l{}.png",idfuture));
             let file = gtk::gio::File::for_path(&path);
             image.set_file(Some(&file));
             revealer.set_reveal_child(true);
@@ -218,11 +218,11 @@ pub fn setlogoimage(id: String) -> Revealer {
     revealer
 }
 
-fn get_cache_dir() -> PathBuf {
+fn get_cache_dir(servername: String) -> PathBuf {
     env::current_exe()
         .unwrap()
         .ancestors()
         .nth(2)
         .unwrap()
-        .join("cache")
+        .join(format!("cache/{}", servername))
 }

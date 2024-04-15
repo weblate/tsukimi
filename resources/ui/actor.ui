@@ -55,8 +55,8 @@
                                     <property name="halign">start</property>
                                     <property name="valign">start</property>
                                     <attributes>
-                                      <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
-                                      <attribute name="scale" value="1.5"/>
+                                      <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
+                                      <attribute name="scale" value="1.5" />
                                     </attributes>
                                   </object>
                                 </child>
@@ -99,8 +99,8 @@
                                 <property name="margin-start">12</property>
                                 <property name="halign">start</property>
                                 <attributes>
-                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
-                                  <attribute name="scale" value="1.3"/>
+                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
+                                  <attribute name="scale" value="1.3" />
                                 </attributes>
                               </object>
                             </child>
@@ -140,8 +140,8 @@
                                 <property name="margin-start">12</property>
                                 <property name="halign">start</property>
                                 <attributes>
-                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
-                                  <attribute name="scale" value="1.3"/>
+                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
+                                  <attribute name="scale" value="1.3" />
                                 </attributes>
                               </object>
                             </child>
@@ -181,8 +181,8 @@
                                 <property name="margin-start">12</property>
                                 <property name="halign">start</property>
                                 <attributes>
-                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
-                                  <attribute name="scale" value="1.3"/>
+                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
+                                  <attribute name="scale" value="1.3" />
                                 </attributes>
                               </object>
                             </child>
@@ -214,8 +214,8 @@
                               <object class="GtkLabel">
                                 <property name="label" translatable="yes">Links</property>
                                 <attributes>
-                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
-                                  <attribute name="scale" value="1.3"/>
+                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
+                                  <attribute name="scale" value="1.3" />
                                 </attributes>
                                 <property name="use-markup">True</property>
                               </object>

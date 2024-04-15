@@ -30,7 +30,7 @@
                           <object class="GtkLabel" id="count">
                             <property name="label" translatable="yes">1</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                             <property name="halign">start</property>
                             <property name="margin-top">12</property>
@@ -43,8 +43,8 @@
                             <property name="vexpand">True</property>
                             <child>
                               <object class="GtkGridView" id="listgrid">
-                              <property name="margin-start">40</property>
-                              <property name="margin-end">40</property>
+                                <property name="margin-start">40</property>
+                                <property name="margin-end">40</property>
                               </object>
                             </child>
                           </object>

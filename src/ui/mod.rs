@@ -1,4 +1,5 @@
 mod image;
+pub(crate) mod models;
 mod moviedrop;
 mod mpv;
 mod network;
@@ -8,6 +9,8 @@ mod widgets;
 use gtk::gdk::Display;
 use gtk::{prelude::*, CssProvider};
 
+use self::models::SETTINGS;
+
 pub fn build_ui(app: &adw::Application) {
     // Create new window and present it
     let window = widgets::window::Window::new(app);
@@ -16,7 +19,7 @@ pub fn build_ui(app: &adw::Application) {
                 let about = adw::AboutWindow::builder()
                     .application_name("Tsukimi")
                     .version(crate::config::APP_VERSION)
-                    .comments("A simple third-party Emby client.\nTest version: tsukimi 0.4.3 \n2024.4.13 10:42")
+                    .comments("A simple third-party Emby client.\nTest version: tsukimi 0.4.5 \n2024.4.14 16:48")
                     .website("https://github.com/tsukinaha/tsukimi")
                     .application_icon("tsukimi")
                     .license_type(gtk::License::Gpl30)
@@ -31,10 +34,8 @@ pub fn build_ui(app: &adw::Application) {
 }
 
 pub fn load_css() {
-    let settings = gtk::gio::Settings::new(crate::APP_ID);
-
     let provider = CssProvider::new();
-    match settings.string("theme").as_str() {
+    match SETTINGS.theme().as_str() {
         "Catppuccin Latte" => {
             provider.load_from_string(include_str!("style.css"));
         }

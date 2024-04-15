@@ -12,6 +12,7 @@ use crate::{
     ui::network::{runtime, Back},
     APP_ID,
 };
+
 pub fn play(
     url: String,
     suburl: Option<String>,
@@ -65,12 +66,17 @@ pub fn play(
             init.set_property("http-proxy", proxy.as_str())?;
         }
 
-        let config_path = env::var("MPV_CONFIG_DIR").unwrap();
+        let config_path = env::current_exe()
+            .unwrap()
+            .ancestors()
+            .nth(2)
+            .unwrap()
+            .join("mpv");
         let config_exists = std::path::PathBuf::from(&config_path)
             .join("mpv.conf")
             .exists();
         if config_exists {
-            init.set_property("config-dir", config_path)?;
+            init.set_property("config-dir", config_path.display().to_string())?;
         }
 
         Ok(())

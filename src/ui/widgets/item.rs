@@ -7,6 +7,7 @@ use std::cell::Ref;
 use std::collections::{HashMap, HashSet};
 use std::env;
 
+use crate::ui::models::SETTINGS;
 use crate::ui::network::{self, runtime, similar, SeriesInfo};
 use crate::ui::new_dropsel::bind_button;
 
@@ -154,7 +155,7 @@ mod imp {
                 sender
                     .send_blocking(false)
                     .expect("The channel needs to be open.");
-                std::thread::sleep(std::time::Duration::from_millis(500));
+                std::thread::sleep(std::time::Duration::from_millis(400));
                 sender
                     .send_blocking(true)
                     .expect("The channel needs to be open.");
@@ -201,7 +202,13 @@ impl ItemPage {
 
     pub fn bind_playbutton(&self, playbackinfo: network::Media, info: network::SeriesInfo) {
         let imp = self.imp();
-        bind_button(playbackinfo, info, imp.namedropdown.get(), imp.subdropdown.get(), imp.playbutton.get());
+        bind_button(
+            playbackinfo,
+            info,
+            imp.namedropdown.get(),
+            imp.subdropdown.get(),
+            imp.playbutton.get(),
+        );
     }
 
     pub fn setup_background(&self) {
@@ -213,10 +220,13 @@ impl ItemPage {
             .ancestors()
             .nth(2)
             .unwrap()
-            .join(format!("cache/b{}.png", id1));
+            .join(format!(
+                "cache/{}/b{}.png",
+                env::var("EMBY_NAME").unwrap(),
+                id1
+            ));
         let backdrop = imp.backdrop.get();
-        let settings = gtk::gio::Settings::new(crate::APP_ID);
-        backdrop.set_height_request(settings.int("background-height"));
+        backdrop.set_height_request(SETTINGS.background_height());
         let (sender, receiver) = async_channel::bounded::<String>(1);
         if pathbuf.exists() {
             backdrop.set_file(Some(&gtk::gio::File::for_path(&pathbuf)));
@@ -244,7 +254,7 @@ impl ItemPage {
                     .ancestors()
                     .nth(2)
                     .unwrap()
-                    .join(format!("cache/b{}.png", id2));
+                    .join(format!("cache/{}/b{}.png",env::var("EMBY_NAME").unwrap(), id2));
 
                 if pathbuf.exists() {
                     let file = gtk::gio::File::for_path(&pathbuf);

@@ -57,8 +57,8 @@
                                     <property name="halign">start</property>
                                     <property name="label" translatable="yes">Loading...</property>
                                     <attributes>
-                                      <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
-                                      <attribute name="scale" value="1.3"/>
+                                      <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
+                                      <attribute name="scale" value="1.3" />
                                     </attributes>
                                   </object>
                                 </child>
@@ -76,8 +76,8 @@
                                 <property name="visible">False</property>
                                 <property name="label" translatable="yes">loading</property>
                                 <attributes>
-                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
-                                  <attribute name="scale" value="1.0"/>
+                                  <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
+                                  <attribute name="scale" value="1.0" />
                                 </attributes>
                               </object>
                             </child>
@@ -152,7 +152,7 @@
                                   <object class="GtkLabel">
                                     <property name="label" translatable="yes">Video: </property>
                                     <attributes>
-                                      <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                                      <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                                     </attributes>
                                   </object>
                                 </child>
@@ -172,7 +172,7 @@
                                   <object class="GtkLabel">
                                     <property name="label" translatable="yes">Subtitle: </property>
                                     <attributes>
-                                      <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                                      <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                                     </attributes>
                                   </object>
                                 </child>
@@ -263,7 +263,7 @@
                           <object class="GtkLabel">
                             <property name="label" translatable="yes">Recommend</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                           </object>
                         </child>
@@ -378,7 +378,7 @@
                           <object class="GtkLabel">
                             <property name="label" translatable="yes">Studios</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                           </object>
                         </child>
@@ -405,7 +405,7 @@
                           <object class="GtkLabel">
                             <property name="label" translatable="yes">Genres</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                           </object>
                         </child>
@@ -432,7 +432,7 @@
                           <object class="GtkLabel">
                             <property name="label" translatable="yes">Tags</property>
                             <attributes>
-                              <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                              <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                             </attributes>
                           </object>
                         </child>

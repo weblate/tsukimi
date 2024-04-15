@@ -16,7 +16,7 @@
                   <object class="GtkLabel">
                     <property name="label" translatable="yes">Continue Watching</property>
                     <attributes>
-                      <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                      <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
                     </attributes>
                     <property name="halign">start</property>
                     <property name="margin-start">12</property>

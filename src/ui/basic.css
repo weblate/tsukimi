@@ -32,6 +32,11 @@ child {
   border-radius: 10px;
 }
 
+.serverrow {
+  margin: 6px;
+  border-radius: 10px;
+}
+
 listview > row {
   margin-left: 9px;
   margin-right: 9px;

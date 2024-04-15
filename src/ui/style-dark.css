@@ -34,12 +34,17 @@ picture {
 }
 
 .frame {
-    border: 2px solid @borders;
-    border-radius: 5px;
+  border: 2px solid @borders;
+  border-radius: 5px;
+}
+
+.serverrow {
+  margin: 6px;
+  border-radius: 10px;
 }
 
 .pill {
-    border-radius: 10px;
+  border-radius: 10px;
 }
 
 listview {

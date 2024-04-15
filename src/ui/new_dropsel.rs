@@ -1,3 +1,7 @@
+use gtk::glib;
+use gtk::prelude::*;
+
+use super::models::SETTINGS;
 use super::mpv;
 use super::network;
 use super::network::get_sub;
@@ -6,8 +10,6 @@ use super::network::Back;
 use super::network::Media;
 use super::network::SeriesInfo;
 use super::provider::dropdown_factory::factory;
-use gtk::glib;
-use gtk::prelude::*;
 
 pub fn newmediadropsel(
     playbackinfo: network::Media,
@@ -62,8 +64,7 @@ pub fn newmediadropsel(
     });
     let info = info.clone();
 
-    let settings = gtk::gio::Settings::new(crate::APP_ID);
-    if settings.boolean("is-resume") {
+    if SETTINGS.resume() {
         if let Some(userdata) = &info.user_data {
             if let Some(percentage) = userdata.played_percentage {
                 if percentage > 0. {
@@ -130,9 +131,7 @@ pub fn bind_button(
                                             let back = Back {
                                                 id: info.id.clone(),
                                                 mediasourceid: media.id.clone(),
-                                                playsessionid: playbackinfo
-                                                    .play_session_id
-                                                    .clone(),
+                                                playsessionid: playbackinfo.play_session_id.clone(),
                                                 tick: userdata.playback_position_ticks.unwrap_or(0),
                                             };
                                             play_event(
@@ -218,8 +217,7 @@ pub fn play_event(
     glib::spawn_future_local(glib::clone!(@weak button =>async move {
         while let Ok(enable_button) = receiver.recv().await {
             if enable_button {
-                let settings = gtk::gio::Settings::new(crate::APP_ID);
-                if settings.boolean("is-resume") {
+                if SETTINGS.resume() {
                     button.set_label("Resume");
                 } else {
                     button.set_label("Play");

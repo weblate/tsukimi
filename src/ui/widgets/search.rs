@@ -1,15 +1,15 @@
-use std::env;
-
-use crate::ui::network::List;
-use crate::ui::widgets::item::ItemPage;
-use crate::ui::widgets::movie::MoviePage;
-use crate::ui::widgets::window::Window;
 use adw::prelude::NavigationPageExt;
 use glib::Object;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::Label;
 use gtk::{gio, glib};
+use std::env;
+
+use crate::ui::network::List;
+use crate::ui::widgets::item::ItemPage;
+use crate::ui::widgets::movie::MoviePage;
+use crate::ui::widgets::window::Window;
 
 mod imp {
 

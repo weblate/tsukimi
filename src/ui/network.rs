@@ -1,35 +1,23 @@
 use crate::config::proxy::ReqClient;
-use crate::config::{self, get_device_name, APP_VERSION};
-use gtk::prelude::SettingsExt;
+use crate::config::{self, get_device_name, save_cfg, Account, APP_VERSION};
+use crate::ui::models::SETTINGS;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Client, Error};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_json::Value;
 use std::env;
-use std::fs::{self, write};
+use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 use tokio::runtime::{self, Runtime};
-use toml::to_string;
-
-#[derive(Serialize, Debug, Deserialize)]
-pub struct Config {
-    pub domain: String,
-    pub username: String,
-    pub password: String,
-    pub port: String,
-    pub user_id: String,
-    pub access_token: String,
-}
 
 pub fn runtime() -> &'static Runtime {
     const STACK_SIZE: usize = 6 * 1024 * 1024;
     static RUNTIME: OnceLock<Runtime> = OnceLock::new();
-    let settings = gtk::gio::Settings::new(crate::APP_ID);
     RUNTIME.get_or_init(|| {
         runtime::Builder::new_multi_thread()
-            .worker_threads(settings.int("threads") as usize)
+            .worker_threads(SETTINGS.threads() as usize)
             .thread_stack_size(STACK_SIZE)
             .enable_all()
             .build()
@@ -42,8 +30,9 @@ fn client() -> &'static Client {
     CLIENT.get_or_init(ReqClient::build)
 }
 
-pub async fn login(
-    domain: String,
+pub async fn loginv2(
+    servername: String,
+    server: String,
     username: String,
     password: String,
     port: String,
@@ -74,7 +63,7 @@ pub async fn login(
     let res = client
         .post(&format!(
             "{}:{}/emby/Users/authenticatebyname",
-            domain, port
+            server, port
         ))
         .headers(headers)
         .json(&body)
@@ -91,26 +80,16 @@ pub async fn login(
     let access_token = v["AccessToken"].as_str().unwrap();
     println!("AccessToken: {}", access_token);
 
-    let config = Config {
-        domain,
+    let config = Account {
+        servername,
+        server,
         username,
         password,
         port,
         user_id: user_id.to_string(),
         access_token: access_token.to_string(),
     };
-    let data = to_string(&config).unwrap();
-    let path = env::current_exe()
-        .unwrap()
-        .ancestors()
-        .nth(2)
-        .unwrap()
-        .join("config/tsukimi.toml");
-    if !path.exists() {
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-    }
-    write(path, data).unwrap();
-
+    save_cfg(config).await.unwrap();
     Ok(())
 }
 
@@ -508,7 +487,7 @@ pub async fn get_image(id: String) -> Result<String, Error> {
                         return Ok(id);
                     }
 
-                    let pathbuf = get_cache_dir();
+                    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap());
                     if pathbuf.exists() {
                         fs::write(pathbuf.join(format!("{}.png", id)), &bytes).unwrap();
                     } else {
@@ -551,7 +530,7 @@ pub async fn get_thumbimage(id: String) -> Result<String, Error> {
                         return Ok(id);
                     }
 
-                    let pathbuf = get_cache_dir();
+                    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap());
                     if pathbuf.exists() {
                         fs::write(pathbuf.join(format!("t{}.png", id)), &bytes).unwrap();
                     } else {
@@ -594,7 +573,7 @@ pub async fn get_backdropimage(id: String) -> Result<String, Error> {
                         return Ok(id);
                     }
 
-                    let pathbuf = get_cache_dir();
+                    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap());
                     if pathbuf.exists() {
                         fs::write(pathbuf.join(format!("b{}.png", id)), &bytes).unwrap();
                     } else {
@@ -637,7 +616,7 @@ pub async fn get_logoimage(id: String) -> Result<String, Error> {
                         return Ok(id);
                     }
 
-                    let pathbuf = get_cache_dir();
+                    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap());
                     if pathbuf.exists() {
                         fs::write(pathbuf.join(format!("l{}.png", id)), &bytes).unwrap();
                     } else {
@@ -1015,24 +994,28 @@ pub(crate) async fn similar(id: &str) -> Result<Vec<SearchResult>, Error> {
         "{}:{}/emby/Items/{}/Similar",
         server_info.domain, server_info.port, id
     );
-    let params = [
-        (
-            "Fields",
-            "BasicSyncInfo,CanDelete,PrimaryImageAspectRatio,ProductionYear,Status,EndDate",
-        ),
-        ("UserId", &server_info.user_id),
-        ("ImageTypeLimit", "1"),
-        ("Limit", "12"),
-        ("X-Emby-Client", "Tsukimi"),
-        ("X-Emby-Device-Name", &get_device_name()),
-        ("X-Emby-Device-Id", &env::var("UUID").unwrap()),
-        ("X-Emby-Client-Version", APP_VERSION),
-        ("X-Emby-Token", &server_info.access_token),
-        ("X-Emby-Language", "zh-cn"),
-    ];
+    let mut json: serde_json::Value = {
+        let device_name = &get_device_name();
+        let device_id = &env::var("UUID").unwrap();
+        let params = [
+            (
+                "Fields",
+                "BasicSyncInfo,CanDelete,PrimaryImageAspectRatio,ProductionYear,Status,EndDate",
+            ),
+            ("UserId", &server_info.user_id),
+            ("ImageTypeLimit", "1"),
+            ("Limit", "12"),
+            ("X-Emby-Client", "Tsukimi"),
+            ("X-Emby-Device-Name", device_name),
+            ("X-Emby-Device-Id", device_id),
+            ("X-Emby-Client-Version", APP_VERSION),
+            ("X-Emby-Token", &server_info.access_token),
+            ("X-Emby-Language", "zh-cn"),
+        ];
 
-    let response = client.get(&url).query(&params).send().await?;
-    let mut json: serde_json::Value = response.json().await?;
+        let response = client.get(&url).query(&params).send().await?;
+        response.json().await?
+    };
     let items: Vec<SearchResult> = serde_json::from_value(json["Items"].take()).unwrap();
     model.search_results = items;
     Ok(model.search_results)
@@ -1046,26 +1029,30 @@ pub(crate) async fn person_item(id: &str, types: &str) -> Result<Vec<Item>, Erro
         "{}:{}/emby/Users/{}/Items",
         server_info.domain, server_info.port, server_info.user_id
     );
-    let params = [
-        ("Fields", "PrimaryImageAspectRatio,ProductionYear"),
-        ("PersonIds", id),
-        ("Recursive", "true"),
-        ("CollapseBoxSetItems", "false"),
-        ("SortBy", "SortName"),
-        ("SortOrder", "Ascending"),
-        ("IncludeItemTypes", types),
-        ("ImageTypeLimit", "1"),
-        ("Limit", "12"),
-        ("X-Emby-Client", "Tsukimi"),
-        ("X-Emby-Device-Name", &get_device_name()),
-        ("X-Emby-Device-Id", &env::var("UUID").unwrap()),
-        ("X-Emby-Client-Version", APP_VERSION),
-        ("X-Emby-Token", &server_info.access_token),
-        ("X-Emby-Language", "zh-cn"),
-    ];
+    let mut json: serde_json::Value = {
+        let device_name = &get_device_name();
+        let device_id = &env::var("UUID").unwrap();
+        let params = [
+            ("Fields", "PrimaryImageAspectRatio,ProductionYear"),
+            ("PersonIds", id),
+            ("Recursive", "true"),
+            ("CollapseBoxSetItems", "false"),
+            ("SortBy", "SortName"),
+            ("SortOrder", "Ascending"),
+            ("IncludeItemTypes", types),
+            ("ImageTypeLimit", "1"),
+            ("Limit", "12"),
+            ("X-Emby-Client", "Tsukimi"),
+            ("X-Emby-Device-Name", device_name),
+            ("X-Emby-Device-Id", device_id),
+            ("X-Emby-Client-Version", APP_VERSION),
+            ("X-Emby-Token", &server_info.access_token),
+            ("X-Emby-Language", "zh-cn"),
+        ];
 
-    let response = client.get(&url).query(&params).send().await?;
-    let mut json: serde_json::Value = response.json().await?;
+        let response = client.get(&url).query(&params).send().await?;
+        response.json().await?
+    };
     let items: Vec<Item> = serde_json::from_value(json["Items"].take()).unwrap();
     Ok(items)
 }
@@ -1100,11 +1087,11 @@ pub async fn get_search_recommend() -> Result<List, Error> {
     Ok(latests)
 }
 
-fn get_cache_dir() -> PathBuf {
+fn get_cache_dir(servername: String) -> PathBuf {
     env::current_exe()
         .unwrap()
         .ancestors()
         .nth(2)
         .unwrap()
-        .join("cache")
+        .join(format!("cache/{}", servername))
 }
