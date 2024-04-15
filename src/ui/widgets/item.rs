@@ -106,6 +106,8 @@ mod imp {
         pub subdropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub backrevealer: TemplateChild<gtk::Revealer>,
+        #[template_child]
+        pub carousel: TemplateChild<adw::Carousel>,
         pub selection: gtk::SingleSelection,
         pub seasonselection: gtk::SingleSelection,
         pub actorselection: gtk::SingleSelection,
@@ -221,7 +223,7 @@ impl ItemPage {
             .nth(2)
             .unwrap()
             .join(format!(
-                "cache/{}/b{}.png",
+                "cache/{}/b{}_0.png",
                 env::var("EMBY_NAME").unwrap(),
                 id1
             ));
@@ -237,7 +239,7 @@ impl ItemPage {
             }));
         } else {
             crate::ui::network::runtime().spawn(async move {
-                let id = crate::ui::network::get_backdropimage(id1)
+                let id = crate::ui::network::get_backdropimage(id1, 0)
                     .await
                     .expect("msg");
                 sender
@@ -254,8 +256,7 @@ impl ItemPage {
                     .ancestors()
                     .nth(2)
                     .unwrap()
-                    .join(format!("cache/{}/b{}.png",env::var("EMBY_NAME").unwrap(), id2));
-
+                    .join(format!("cache/{}/b{}_0.png",env::var("EMBY_NAME").unwrap(), id2));
                 if pathbuf.exists() {
                     let file = gtk::gio::File::for_path(&pathbuf);
                     backdrop.set_file(Some(&file));
@@ -265,6 +266,79 @@ impl ItemPage {
                 }
             }
         }));
+    }
+
+    pub fn add_backdrops(&self, image_tags: Vec<String>) {
+        println!("{:?}", image_tags);
+        let imp = self.imp();
+        let id = self.id();
+        let tags = image_tags.len();
+        let carousel = imp.carousel.get();
+        for tag_num in 1..=tags {
+            let id = id.clone();
+            let pathbuf = env::current_exe()
+                .unwrap()
+                .ancestors()
+                .nth(2)
+                .unwrap()
+                .join(format!(
+                    "cache/{}/b{}_{}.png",
+                    env::var("EMBY_NAME").unwrap(),
+                    id,
+                    tag_num
+                ));
+            let (sender, receiver) = async_channel::bounded::<String>(1);
+            let id2 = id.clone();
+            if pathbuf.exists() {
+                glib::spawn_future_local(glib::clone!(@weak carousel =>async move {
+                    let file = gtk::gio::File::for_path(&pathbuf);
+                    let picture = gtk::Picture::builder()
+                        .file(&file)
+                        .halign(gtk::Align::Fill)
+                        .valign(gtk::Align::Fill)
+                        .content_fit(gtk::ContentFit::Cover)
+                        .height_request(SETTINGS.background_height())
+                        .build();
+                    carousel.append(&picture);
+                }));
+            } else {
+                crate::ui::network::runtime().spawn(async move {
+                    let id = crate::ui::network::get_backdropimage(id, tag_num as u8)
+                        .await
+                        .expect("msg");
+                    sender
+                        .send(id)
+                        .await
+                        .expect("The channel needs to be open.");
+                });
+            }
+            glib::spawn_future_local(glib::clone!(@weak carousel=>async move {
+                while receiver.recv().await.is_ok() {
+                    let pathbuf = env::current_exe()
+                        .unwrap()
+                        .ancestors()
+                        .nth(2)
+                        .unwrap()
+                        .join(format!(
+                            "cache/{}/b{}_{}.png",
+                            env::var("EMBY_NAME").unwrap(),
+                            id2,
+                            tag_num
+                        ));
+                    if pathbuf.exists() {
+                        let file = gtk::gio::File::for_path(&pathbuf);
+                        let picture = gtk::Picture::builder()
+                            .halign(gtk::Align::Fill)
+                            .valign(gtk::Align::Fill)
+                            .content_fit(gtk::ContentFit::Cover)
+                            .height_request(SETTINGS.background_height())
+                            .file(&file)
+                            .build();
+                        carousel.append(&picture);
+                    }
+                }
+            }));
+        }
     }
 
     pub async fn setup_seasons(&self) {
@@ -613,6 +687,9 @@ impl ItemPage {
                     obj.set_genres(genres);
                 }
                 overviewrevealer.set_reveal_child(true);
+                if let Some(image_tags) = item.backdrop_image_tags {
+                    obj.add_backdrops(image_tags);
+                }
             }
         }));
     }

@@ -111,7 +111,7 @@ pub fn setthumbimage(id: String) -> Revealer {
     revealer
 }
 
-pub fn setbackdropimage(id: String) -> Revealer {
+pub fn setbackdropimage(id: String, tag: u8) -> Revealer {
     let (sender, receiver) = async_channel::bounded::<String>(1);
 
     let image = gtk::Picture::new();
@@ -125,7 +125,8 @@ pub fn setbackdropimage(id: String) -> Revealer {
         .transition_duration(400)
         .build();
 
-    let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("b{}.png", id));
+    let pathbuf =
+        get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("b{}_{}.png", id, tag));
     let idfuture = id.clone();
     if pathbuf.exists() {
         if image.file().is_none() {
@@ -136,7 +137,7 @@ pub fn setbackdropimage(id: String) -> Revealer {
         crate::ui::network::runtime().spawn(async move {
             let mut retries = 0;
             while retries < 3 {
-                match crate::ui::network::get_backdropimage(id.clone()).await {
+                match crate::ui::network::get_backdropimage(id.clone(), tag).await {
                     Ok(id) => {
                         sender
                             .send(id.clone())
@@ -155,7 +156,7 @@ pub fn setbackdropimage(id: String) -> Revealer {
 
     glib::spawn_future_local(clone!(@weak image,@weak revealer => async move {
         while receiver.recv().await.is_ok() {
-            let path = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("b{}.png",idfuture));
+            let path = get_cache_dir(env::var("EMBY_NAME").unwrap()).join(format!("b{}_{}.png",idfuture,tag));
             let file = gtk::gio::File::for_path(&path);
             image.set_file(Some(&file));
             revealer.set_reveal_child(true);

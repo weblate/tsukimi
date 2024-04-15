@@ -303,6 +303,8 @@ pub struct Item {
     pub run_time_ticks: Option<u64>,
     #[serde(rename = "Taglines")]
     pub taglines: Option<Vec<String>>,
+    #[serde(rename = "BackdropImageTags")]
+    pub backdrop_image_tags: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -553,13 +555,13 @@ pub async fn get_thumbimage(id: String) -> Result<String, Error> {
     }
 }
 
-pub async fn get_backdropimage(id: String) -> Result<String, Error> {
+pub async fn get_backdropimage(id: String,tag:u8) -> Result<String, Error> {
     let server_info = config::set_config();
 
     let result = client()
         .get(&format!(
-            "{}:{}/emby/Items/{}/Images/Backdrop?maxHeight=1200",
-            server_info.domain, server_info.port, id
+            "{}:{}/emby/Items/{}/Images/Backdrop/{}?maxHeight=1200",
+            server_info.domain, server_info.port, id, tag
         ))
         .send()
         .await;
@@ -575,11 +577,11 @@ pub async fn get_backdropimage(id: String) -> Result<String, Error> {
 
                     let pathbuf = get_cache_dir(env::var("EMBY_NAME").unwrap());
                     if pathbuf.exists() {
-                        fs::write(pathbuf.join(format!("b{}.png", id)), &bytes).unwrap();
+                        fs::write(pathbuf.join(format!("b{}_{}.png", id, tag)), &bytes).unwrap();
                     } else {
                         fs::create_dir_all(&pathbuf).unwrap();
 
-                        fs::write(pathbuf.join(format!("b{}.png", id)), &bytes).unwrap();
+                        fs::write(pathbuf.join(format!("b{}_{}.png", id, tag)), &bytes).unwrap();
                     }
                     Ok(id)
                 }
