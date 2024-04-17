@@ -555,7 +555,7 @@ pub async fn get_thumbimage(id: String) -> Result<String, Error> {
     }
 }
 
-pub async fn get_backdropimage(id: String,tag:u8) -> Result<String, Error> {
+pub async fn get_backdropimage(id: String, tag: u8) -> Result<String, Error> {
     let server_info = config::set_config();
 
     let result = client()

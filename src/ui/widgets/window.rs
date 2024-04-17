@@ -8,14 +8,13 @@ use std::env;
 use std::path::PathBuf;
 
 mod imp {
-    use std::cell::OnceCell;
-
     use adw::subclass::application_window::AdwApplicationWindowImpl;
     use glib::subclass::InitializingObject;
     use gtk::gio::Settings;
     use gtk::prelude::*;
     use gtk::subclass::prelude::*;
     use gtk::{glib, CompositeTemplate};
+    use std::cell::OnceCell;
 
     // Object holding the state
     #[derive(CompositeTemplate, Default)]
@@ -217,8 +216,9 @@ impl Window {
                 let account: &Account = &*account_ptr.as_ptr();
                 load_env(account);
             }
+            obj.imp().historypage.set_child(None::<&gtk::Widget>);
+            obj.imp().searchpage.set_child(None::<&gtk::Widget>);
             obj.mainpage();
-            obj.imp().selectlist.select_row(obj.imp().selectlist.row_at_index(0).as_ref());
             obj.freshhomepage();
         }));
     }
@@ -228,7 +228,8 @@ impl Window {
         imp.homeview.pop();
         if let Some(tag) = imp.homeview.visible_page().unwrap().tag() {
             if tag.as_str() == "homepage" {
-                imp.navipage.set_title("Home");
+                imp.navipage
+                    .set_title(&env::var("EMBY_NAME").unwrap_or_else(|_| "Home".to_string()));
                 self.change_pop_visibility();
             } else {
                 imp.navipage.set_title(&tag);
@@ -354,11 +355,13 @@ impl Window {
         if imp.homepage.child().is_none() {
             imp.homepage
                 .set_child(Some(&crate::ui::widgets::home::HomePage::new()));
-            imp.navipage.set_title("Home");
+            imp.navipage
+                .set_title(&env::var("EMBY_NAME").unwrap_or_else(|_| "Home".to_string()));
         }
         if let Some(tag) = imp.homeview.visible_page().unwrap().tag() {
             if tag.as_str() == "homepage" {
-                imp.navipage.set_title("Home");
+                imp.navipage
+                    .set_title(&env::var("EMBY_NAME").unwrap_or_else(|_| "Home".to_string()));
                 self.set_pop_visibility(false);
             } else {
                 imp.navipage
@@ -374,17 +377,21 @@ impl Window {
 
     fn freshhomepage(&self) {
         let imp = self.imp();
-        imp.insidestack.set_visible_child_name("homepage");
+        imp.selectlist
+            .select_row(imp.selectlist.row_at_index(0).as_ref());
         imp.homeview
             .pop_to_page(&imp.homeview.find_page("homepage").unwrap());
         imp.homepage
             .set_child(Some(&crate::ui::widgets::home::HomePage::new()));
-        imp.navipage.set_title("Home");
+        imp.navipage
+            .set_title(&env::var("EMBY_NAME").unwrap_or_else(|_| "Home".to_string()));
         self.set_pop_visibility(false);
     }
 
     fn freshhistorypage(&self) {
         let imp = self.imp();
+        imp.selectlist
+            .select_row(imp.selectlist.row_at_index(1).as_ref());
         imp.insidestack.set_visible_child_name("historypage");
         imp.historyview
             .pop_to_page(&imp.historyview.find_page("historypage").unwrap());
@@ -396,6 +403,8 @@ impl Window {
 
     fn freshsearchpage(&self) {
         let imp = self.imp();
+        imp.selectlist
+            .select_row(imp.selectlist.row_at_index(2).as_ref());
         imp.insidestack.set_visible_child_name("searchpage");
         imp.searchview
             .pop_to_page(&imp.searchview.find_page("searchpage").unwrap());

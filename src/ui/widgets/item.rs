@@ -108,6 +108,8 @@ mod imp {
         pub backrevealer: TemplateChild<gtk::Revealer>,
         #[template_child]
         pub carousel: TemplateChild<adw::Carousel>,
+        #[template_child]
+        pub indicator: TemplateChild<adw::CarouselIndicatorLines>,
         pub selection: gtk::SingleSelection,
         pub seasonselection: gtk::SingleSelection,
         pub actorselection: gtk::SingleSelection,
@@ -269,11 +271,12 @@ impl ItemPage {
     }
 
     pub fn add_backdrops(&self, image_tags: Vec<String>) {
-        println!("{:?}", image_tags);
         let imp = self.imp();
         let id = self.id();
         let tags = image_tags.len();
         let carousel = imp.carousel.get();
+        let indicator = imp.indicator.get();
+        indicator.set_carousel(Some(&carousel));
         for tag_num in 1..=tags {
             let id = id.clone();
             let pathbuf = env::current_exe()
@@ -338,6 +341,7 @@ impl ItemPage {
                     }
                 }
             }));
+            carousel.set_allow_scroll_wheel(true);
         }
     }
 
@@ -938,13 +942,15 @@ impl ItemPage {
                 }
             }
             if label.is::<gtk::Label>() {
-                if let Some(role) = &people.role {
-                    let str = format!("{}\n{}", people.name, role);
-                    label
-                        .downcast_ref::<gtk::Label>()
-                        .expect("Needs to be Label")
-                        .set_text(&str);
-                }
+                let str = if let Some(role) = &people.role {
+                    format!("{}\n{}", people.name, role)
+                } else {
+                    people.name.to_string()
+                };
+                label
+                    .downcast_ref::<gtk::Label>()
+                    .expect("Needs to be Label")
+                    .set_text(&str);
             }
         });
         imp.actorlist.set_factory(Some(&factory));
