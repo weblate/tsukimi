@@ -55,6 +55,14 @@ jobs:
           remove-item -recurse share/icons/hicolor && remove-item -recurse share/icons/Adwaita/scalable && remove-item -recurse share/icons/Adwaita/cursors
           remove-item -recurse share/icons/Adwaita/16x16 && remove-item -recurse share/icons/Adwaita/symbolic-up-to-32
           gci -directory -recurse .|where-object {$_.getfilesysteminfos().count -eq 0}|remove-item -recurse 
+          7z.exe a ../tsukimi-${{matrix.arch}}.7z ./*
+
+      - name: Build Complete Package
+        run: |
+          cd artifact/ && cp -r tsukimi-windows-gnu-amd64 tsukimi-windows-gnu-amd64-complete && cd tsukimi-windows-gnu-amd64-complete && mkdir mpv && cd mpv
+          Invoke-WebRequest -Uri "https://github.com/ZBound/tkm-config/releases/latest/download/mqv.7z" -OutFile mpv.7z
+          7z.exe x mpv.7z && rm mpv.7z
+          7z.exe a ../../tsukimi-${{matrix.arch}}-complete.7z ../*
 
       - name: Upload artifact
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -62,6 +70,6 @@ jobs:
         with:
           name: tsukimi-${{matrix.arch}}
           path: |
-            artifact/*
-          compression-level: 5
+            artifact/*.7z
+          compression-level: 0
           retention-days: 3
