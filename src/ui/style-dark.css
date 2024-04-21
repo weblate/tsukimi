@@ -245,11 +245,3 @@ button.titlebutton.minimize:hover,
 windowcontrols > button.minimize:hover {
   opacity: 0.8;
 }
-
-label {
-  font-size: 16px;
-}
-
-.large-font {
-  font-size: 18px;
-}

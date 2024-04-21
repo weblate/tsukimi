@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 mod config;
 mod ui;
+mod utils;
 
 use config::load_uuid;
 use gtk::prelude::*;

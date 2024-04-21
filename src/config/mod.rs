@@ -4,7 +4,7 @@ use std::{env, fs::File, io::Read};
 use uuid::Uuid;
 
 pub mod proxy;
-pub const APP_VERSION: &str = "0.4.6";
+pub const APP_VERSION: &str = "0.4.7";
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Config {
@@ -147,4 +147,13 @@ pub fn remove(account: &Account) -> Result<(), Box<dyn std::error::Error>> {
         .open(path)?;
     writeln!(file, "{}", toml)?;
     Ok(())
+}
+
+pub fn get_cache_dir(servername: String) -> std::path::PathBuf {
+    env::current_exe()
+        .unwrap()
+        .ancestors()
+        .nth(2)
+        .unwrap()
+        .join(format!("cache/{}", servername))
 }

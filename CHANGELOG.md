@@ -1,3 +1,20 @@
+## 0.4.7
+
+### Added
+
+- Remember last server
+- Favourites & Like
+- Some new options
+
+### Fixed
+
+- Improve animation
+- Add local cache of HOME page
+
+### Note
+
+Starting with this release, packages naming `xxx-complete.7z` will include an mpv configuration package, thanks to [ZBound](https://github.com/ZBound), for more details about this, see [tkm-config](https://github.com/ZBound/tkm-config)
+
 ## 0.4.6
 
 ### Added
