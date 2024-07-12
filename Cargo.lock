@@ -382,7 +382,7 @@ dependencies = [
  "clapper-sys",
  "gio 0.19.5",
  "glib 0.19.6",
- "gstreamer 0.22.6",
+ "gstreamer",
  "libc",
 ]
 
@@ -419,7 +419,7 @@ dependencies = [
  "gio-sys 0.19.5",
  "glib-sys 0.19.5",
  "gobject-sys 0.19.5",
- "gstreamer-sys 0.22.2",
+ "gstreamer-sys",
  "libc",
  "system-deps 6.2.2",
 ]
@@ -1184,32 +1184,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "glib 0.19.6",
- "gstreamer-sys 0.22.2",
- "itertools 0.13.0",
- "libc",
- "muldiv",
- "num-integer",
- "num-rational",
- "once_cell",
- "option-operations",
- "paste",
- "pin-project-lite",
- "smallvec",
- "thiserror",
-]
-
-[[package]]
-name = "gstreamer"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21e95b1d1153239a621ec143501fdcca6c1ad3efb87d268597285f85c4136f73"
-dependencies = [
- "cfg-if",
- "futures-channel",
- "futures-core",
- "futures-util",
- "glib 0.20.0",
- "gstreamer-sys 0.23.0",
+ "gstreamer-sys",
  "itertools 0.13.0",
  "libc",
  "muldiv",
@@ -1233,18 +1208,6 @@ dependencies = [
  "gobject-sys 0.19.5",
  "libc",
  "system-deps 6.2.2",
-]
-
-[[package]]
-name = "gstreamer-sys"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9c9005b55dd2b1784645963c1ec409f9d420a56f6348d0ae69c2eaff584bcc3"
-dependencies = [
- "glib-sys 0.20.0",
- "gobject-sys 0.20.0",
- "libc",
- "system-deps 7.0.1",
 ]
 
 [[package]]
@@ -2896,7 +2859,7 @@ dependencies = [
  "crossbeam",
  "dirs",
  "glib-build-tools",
- "gstreamer 0.23.0",
+ "gstreamer",
  "gtk4",
  "image",
  "libadwaita",
