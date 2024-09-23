@@ -112,7 +112,7 @@ pub(crate) mod imp {
         pub toolbar: TemplateChild<gtk::Box>,
 
         #[template_child]
-        pub spinner: TemplateChild<adw::Spinner>,
+        pub spinner: TemplateChild<gtk::Spinner>,
 
         #[template_child]
         pub buttoncontent: TemplateChild<adw::ButtonContent>,

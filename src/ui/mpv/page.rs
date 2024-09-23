@@ -64,7 +64,7 @@ mod imp {
         #[template_child]
         pub duration_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub spinner: TemplateChild<adw::Spinner>,
+        pub spinner: TemplateChild<gtk::Spinner>,
         #[template_child]
         pub loading_box: TemplateChild<gtk::Box>,
         #[template_child]
@@ -370,9 +370,7 @@ impl MPVPage {
         let video_list = self.imp().current_episode_list.borrow().clone();
 
         let playback =
-            match spawn_tokio(async move { EMBY_CLIENT.get_playbackinfo(&item_id).await })
-                .await
-            {
+            match spawn_tokio(async move { EMBY_CLIENT.get_playbackinfo(&item_id).await }).await {
                 Ok(playback) => playback,
                 Err(e) => {
                     toast!(self, e.to_user_facing());

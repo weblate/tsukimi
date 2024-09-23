@@ -83,7 +83,7 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="AdwSpinner" id="spinner">
+                                  <object class="GtkSpinner" id="spinner">
                                     <property name="visible">False</property>
                                   </object>
                                 </child>

@@ -37,7 +37,7 @@ mod imp {
         #[template_child]
         pub toast: TemplateChild<adw::ToastOverlay>,
         #[template_child]
-        pub spinner: TemplateChild<adw::Spinner>,
+        pub spinner: TemplateChild<gtk::Spinner>,
     }
 
     // The central trait for subclassing a GObject
